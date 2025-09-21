@@ -1,0 +1,17 @@
+// {
+//     "latex-workshop.latex.tools": [
+//       {
+//         "name": "tectonic",
+//         "command": "/opt/homebrew/bin/tectonic",
+//         "args": ["-X", "compile", "--synctex", "%DOC%"]
+//       }
+//     ],
+//     "latex-workshop.latex.recipes": [{ "name": "tectonic", "tools": ["tectonic"] }],
+//     "latex-workshop.latex.autoBuild.run": "onSave",
+//     "latex-workshop.view.pdf.viewer": "tab",
+//     "latex-workshop.synctex.afterBuild.enabled": true,
+//     "latex-workshop.latex.build.forceRecipeUsage": false,
+//     "latex-workshop.latex.rootFile.doNotPrompt": false,
+//     "latex-workshop.latex.search.rootFiles.include": ["taller-1/main.tex"]
+//   }
+  
