@@ -1,19 +1,49 @@
-*.aux
-*.bbl
-*.blg
-*.log
-*.out
-*.toc
-*.lof
-*.lot
-*.fls
-*.fdb_latexmk
-*.synctex.gz
-*.xdv
-*.nav
-*.snm
-*.bcf
-*.run.xml
-main.pdf
-_build/
-latexmkrc
+# ===================== MiniZinc =====================
+# Mantener fuentes
+!*.mzn
+!*.dzn
+!*.mzx       # si usas bibliotecas empaquetadas propias
+
+# Artefactos de compilación/flatten
+*.fzn        # FlatZinc generado
+*.ozn        # script de impresión generado
+*.mzn.tmp
+*.dzn.tmp
+
+# Salidas/estadísticas de corridas (ajusta según lo que guardes)
+*.stat
+*.stats.json
+*.jsonl
+*.ndjson
+*.trace
+*.dtrace
+*.res
+*.out        # cuidado: ya ignoras .out de LaTeX; útil también para runs
+*.err
+*.log        # ya ignorado por LaTeX
+
+# Directorios para resultados (si los usas)
+runs/
+out/
+outputs/
+results/
+
+# Visualizador de búsqueda (Gist) – ignora trazas crudas, NO las figuras finales
+gist/
+*.search.json
+*.gv
+# (si exportas PNG/SVG para el informe, guárdalas en figs/ y no las ignores)
+
+# ===================== IDE / Editor =====================
+# MiniZinc IDE / VSCode / JetBrains
+.mzn-workspace/
+.mzn-cache/
+.minizinc/
+.vscode/
+.idea/
+
+# ===================== SO =====================
+# macOS
+.DS_Store
+# Windows
+Thumbs.db

@@ -1,5 +1,7 @@
 % !TEX root = ../../main.tex
 
-\section{Sudoku}\label{sec:01-sudoku}
-Introducción al problema y alcance del modelado.
-Supuestos y parámetros clave.
+\section{Sodoku}
+El \emph{Sudoku} es un rompecabezas lógico en una cuadrícula \(9\times9\) dividida en nueve cajas \(3\times3\). El tablero se entrega con algunas celdas ya llenas (\emph{pistas}) y el objetivo es completar todas las celdas con dígitos del \(1\) al \(9\) cumpliendo simultáneamente: (i) en cada fila no se repiten dígitos, (ii) en cada columna no se repiten, y (iii) en cada caja \(3\times3\) no se repiten.
+
+El \emph{Sudoku clásico 9×9} puede modelarse naturalmente como un \emph{Problema de Satisfacción de Restricciones} (CSP): cada celda es una variable con dominio \(\{1,\dots,9\}\), y las reglas del juego se expresan como restricciones sobre filas, columnas y subcuadrículas \(3\times3\).
+

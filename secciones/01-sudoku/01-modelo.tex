@@ -1,5 +1,83 @@
 % !TEX root = ../../main.tex
 
-\subsection{Modelo}\label{sec:01-sudoku-modelo}
-Definición de variables, dominios y restricciones principales.
-Justificación del modelo.
+\subsection{Modelo}\label{sec:modelo}
+
+\subsubsection*{Parámetros}
+
+\begin{description}
+  \item[\textbf{P1 — \(N\):}] Tamaño del tablero (lado). En el Sudoku clásico, \(N=9\).
+  \[
+    N = 9.
+  \]
+
+  \item[\textbf{P2 — \(S\):}] Índices válidos de filas y columnas.
+  \[
+    S = \{1,\dots,N\}.
+  \]
+
+  \item[\textbf{P3 — \(DIG\):}] Conjunto de dígitos permitidos en cada celda.
+  \[
+    DIG = \{1,\dots,N\}.
+  \]
+
+  \item[\textbf{P4 — \(G\):}] Matriz de \emph{pistas}; \(0\) indica celda vacía y un valor en \(DIG\) fija la celda.
+  \[
+    G \in \{0,\dots,N\}^{S\times S}, \qquad
+    G_{r,c}=0 \ \text{(vacía)},\quad G_{r,c}\in DIG \ \text{(valor fijo)}.
+  \]
+\end{description}
+
+\subsubsection*{Variables}
+
+\begin{description}
+  \item[\textbf{V1 — \(X_{r,c}\):}] Valor de la celda en fila \(r\) y columna \(c\).
+  \[
+    X_{r,c}\in DIG, \qquad (r,c)\in S\times S.
+  \]
+\end{description}
+
+\subsubsection*{Restricciones principales}
+
+\begin{description}
+  \item[\textbf{R1 — Fijación de pistas:}] Las pistas son hechos inmutables: si hay pista en \((r,c)\), la celda queda fijada.
+  \[
+    \forall (r,c)\in S\times S:\ \ (G_{r,c}>0)\ \Rightarrow\ (X_{r,c}=G_{r,c}).
+  \]
+
+  \item[\textbf{R2 — No repetición por fila:}] En cada fila, los nueve valores deben ser todos distintos.
+  \[
+    \forall r\in S:\ \ \textit{all\_different}\big([\,X_{r,c}\mid c\in S\,]\big).
+  \]
+
+  \item[\textbf{R3 — No repetición por columna:}] En cada columna, los nueve valores deben ser todos distintos.
+  \[
+    \forall c\in S:\ \ \textit{all\_different}\big([\,X_{r,c}\mid r\in S\,]\big).
+  \]
+
+  \item[\textbf{R4 — No repetición por caja \(3\times3\):}] En cada subcuadrícula \(3\times3\), los nueve valores deben ser todos distintos.
+  \[
+    \forall b_r,b_c\in\{0,1,2\}:\ \
+    \textit{all\_different}\big([\,X_{3b_r+i,\,3b_c+j}\mid i,j\in\{1,2,3\}\,]\big).
+  \]
+\end{description}
+
+\subsubsection*{Restricciones redundantes}
+
+\begin{description}
+  \item[\textbf{R5 — Suma por fila = 45:}] Cada fila contiene los dígitos \(1..9\) sin repetición; por tanto su suma es \(45\). Aporta poda lineal cuando faltan pocas celdas.
+  \[
+    \forall r\in S:\ \sum_{c\in S} X_{r,c}=45.
+  \]
+
+  \item[\textbf{R6 — Suma por columna = 45:}] Análogo para columnas; refuerza la propagación vertical.
+  \[
+    \forall c\in S:\ \sum_{r\in S} X_{r,c}=45.
+  \]
+
+  \item[\textbf{R7 — Suma por caja \(3\times3\) = 45:}] Cada subcuadrícula \(3\times3\) reúne los nueve dígitos sin repetición; su suma también es \(45\). Útil para cerrar cajas cuando faltan pocas celdas.
+  \[
+    \forall\, b_r,b_c\in\{0,1,2\}:\ 
+    \sum_{i=1}^{3}\sum_{j=1}^{3} X_{\,3b_r+i,\;3b_c+j} = 45.
+  \]
+\end{description}
+
