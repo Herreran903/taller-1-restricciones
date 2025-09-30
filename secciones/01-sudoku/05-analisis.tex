@@ -1,4 +1,15 @@
 % !TEX root = ../../main.tex
 
-\subsection{Análisis}\label{sec:01-sudoku-analisis}
-Comparación de variantes y discusión de resultados.
+\subsection{Análisis}\label{sec:analisis}
+
+Con base en la Tabla~\ref{sec:pruebas} y las figuras del árbol de búsqueda, comparamos las configuraciones por tres criterios: \textbf{nodes}, \textbf{failures} y \textbf{tiempo}. En general, el modelo con \textit{all\_different + redundantes} tiende a producir menos fallos; y, entre heurísticas, \textit{dom\_w\_deg + indomain\_split} suele explorar menos nodos que \textit{first\_fail + indomain\_min} en instancias más difíciles, mientras que \textit{first\_fail + indomain\_min} es un buen baseline cuando hay más pistas.
+
+\begin{itemize}
+  \item \textbf{Tamaño del árbol (nodes).} \textit{[Estrategía A]} explora \textit{[\_\% menos]} nodos que \textit{[Estrategía B]} en \textit{[instancias]}.
+  \item \textbf{Backtracking (failures).} \textit{[Estrategía A]} reduce los fallos frente a \textit{[Estrategía B]}, coherente con mayor propagación.
+  \item \textbf{Profundidad/forma.} Árboles más “anchos y podados” (fallos tempranos) se asocian a menos \textit{nodes}; \textit{[Fig.~X]} vs.\ \textit{[Fig.~Y]}.
+  \item \textbf{Tiempo.} Depende de \textit{nodes} y del coste por nodo: aunque \textit{[Estrategía A]} tenga menos nodos, \textit{[Estrategía B]} puede igualar si su coste/nodo es menor (\textit{[\_\_]} s vs.\ \textit{[\_\_]} s).
+  \item \textbf{Solver.} \textit{[Chuffed/Gecode]} rinde mejor en \textit{[tipo de instancia]} con \textit{[heurística]}, según \textit{[\_\_]} en \textit{nodes}/\textit{failures}/\textit{tiempo}.
+\end{itemize}
+
+\noindent \textbf{Conclusión breve.} Para \textit{[instancias difíciles]}, recomendamos \textit{dom\_w\_deg + indomain\_split}; para \textit{[fáciles/medias]}, \textit{first\_fail + indomain\_min} es suficiente. Active siempre las redundantes.

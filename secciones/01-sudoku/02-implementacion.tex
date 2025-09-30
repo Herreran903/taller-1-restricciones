@@ -1,4 +1,40 @@
 % !TEX root = ../../main.tex
 
-\subsection{Detalles de implementación}\label{sec:01-sudoku-impl}
-Restricciones redundantes, rompimiento de simetrías y decisiones técnicas.
+\subsection{Implementación}\label{sec:implementacion}
+
+\subsubsection*{Archivos y organización}
+\begin{itemize}
+  \item \texttt{sudoku.mzn}: modelo completo.
+  \item \texttt{tests/*.dzn}: instancias con la matriz \(G\) (0 = vacío).
+\end{itemize}
+
+\subsubsection*{Ramificación solo en celdas vacías}
+Se construye el arreglo \(\mathcal{B}=\{X_{r,c}\mid G_{r,c}=0\}\) para ramificar únicamente sobre celdas no fijadas por pistas; así se evita trabajo sobre variables ya determinadas.
+
+\subsubsection*{Restricciones redundantes}
+Las ecuaciones de suma \(45\) y suma de cuadrados \(285\) para filas/columnas se activan siempre. Son \emph{redundantes}: no cambian las soluciones posibles pero fortalecen la propagación.
+
+\subsubsection*{Ruptura de simetría}
+En Sudoku con \emph{pistas fijas} la mayoría de simetrías del modelo (permutaciones de filas/columnas/bandas, renombrar dígitos, transposición) \emph{no} preservan la instancia: moverían las pistas a posiciones distintas. Por ello \emph{no imponemos} restricciones de ruptura de simetría globales, ya que podrían eliminar la única solución válida de la instancia.
+
+\subsubsection*{Estrategias de búsqueda}
+Para las pruebas sobre el modelo de Sudoku se plantean diferentes combinaciones de heurísticas, con el objetivo de analizar su impacto en el tamaño del árbol de búsqueda y el tiempo de resolución. Se considerarán, de manera tentativa, las siguientes familias:
+
+\paragraph*{Heurísticas de selección de variables}
+\begin{itemize}
+  \item \textbf{first\_fail}: prioriza la variable con dominio más pequeño.
+  \item \textbf{dom\_w\_deg}: usa la razón \(\text{dominio}/\text{grado ponderado}\).
+  \item \textbf{input\_order}: sigue el orden natural de las variables.
+  \item \textbf{sin anotación explícita}: dejar que el solver elija su estrategia por defecto.
+\end{itemize}
+
+\paragraph*{Heurísticas de selección de valores}
+\begin{itemize}
+  \item \textbf{indomain\_min}: intenta primero el valor mínimo del dominio.
+  \item \textbf{indomain\_split}: divide el dominio y explora por mitades.
+  \item \textbf{indomain\_median}: comienza por la mediana.
+  \item \textbf{sin anotación explícita}: que el solver decida por defecto.
+\end{itemize}
+
+\paragraph*{Solvers y métricas}
+Se evaluarán combinaciones representativas con \textbf{Gecode} y \textbf{Chuffed}, registrando: \emph{tiempo de resolución}, \emph{nodos explorados}, \emph{fallos}, \emph{profundidad}, \emph{reinicios} (si aplica) y \emph{memoria pico}. El objetivo es comparar rendimiento entre estrategias y verificar la robustez del modelo frente a distintos motores de propagación.
