@@ -1,5 +1,6 @@
 % !TEX root = ../../main.tex
 
 \section{Ubicación de personas en una reunión}\label{sec:05-reunion}
-Introducción al problema y alcance del modelado.
-Supuestos y parámetros clave.
+Un grupo de \(N\) personas desea tomarse una fotografía en una sola fila. Algunas parejas de personas imponen preferencias de proximidad: \emph{adyacencia} (\texttt{next}), \emph{no adyacencia} (\texttt{separate}) y \emph{cota máxima de distancia} (\texttt{distance}), que limitan cuántas personas pueden quedar entre dos individuos.
+
+Este problema puede modelarse como un \emph{Problema de Satisfacción de Restricciones} (CSP): cada persona debe ocupar exactamente una posición en la fila y las preferencias se expresan como restricciones sobre las posiciones relativas (por ejemplo, \(|\mathrm{pos}(A)-\mathrm{pos}(B)|=1\) para \texttt{next}, \(|\mathrm{pos}(A)-\mathrm{pos}(B)|\ge 2\) para \texttt{separate}, y \(|\mathrm{pos}(A)-\mathrm{pos}(B)|\le M+1\) para \texttt{distance}). El objetivo es encontrar cualquier orden que satisfaga simultáneamente todas las preferencias, o certificar que no existe.

@@ -35,8 +35,8 @@
 \contentsline {subsection}{\numberline {5.5}Análisis}{9}{subsection.5.5}%
 \contentsline {subsection}{\numberline {5.6}Conclusiones}{9}{subsection.5.6}%
 \contentsline {section}{\numberline {6}Construcción de un rectángulo}{9}{section.6}%
-\contentsline {subsection}{\numberline {6.1}Modelo}{9}{subsection.6.1}%
-\contentsline {subsection}{\numberline {6.2}Detalles de implementación}{9}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.1}Modelo}{10}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Detalles de implementación}{10}{subsection.6.2}%
 \contentsline {subsection}{\numberline {6.3}Pruebas}{10}{subsection.6.3}%
 \contentsline {subsection}{\numberline {6.4}Árboles de búsqueda}{10}{subsection.6.4}%
 \contentsline {subsection}{\numberline {6.5}Análisis}{10}{subsection.6.5}%
