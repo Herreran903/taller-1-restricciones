@@ -1,12 +1,12 @@
 % --------------------------------------------------------------
-% sudoku_alldiff_redundant.mzn — Sudoku 9x9 con all_different + redundantes
-% - G[r,c] es la entrada: 0 = celda vacía, 1..9 = pista fija
+% sudoku.mzn — Sudoku 9x9 con all_different (+ sumas redundantes opcionales)
+% - G[r,c] es la entrada: 0 = celda vacía, 1..9 = pista fija.
 % - Restricciones principales:
-%     * Filas, columnas y cajas 3x3 con all_different (propagación fuerte)
-% - Restricciones redundantes:
-%     * En cada fila/columna: suma = 45 y suma de cuadrados = 285
-% - Búsqueda: first_fail + indomain_min (puedes cambiarla fácilmente)
-% - Salida: tablero formateado con separadores de cajas
+%     * Filas, columnas y cajas 3x3 con all_different (propagación fuerte).
+% - Restricciones redundantes (incluidas aquí como apoyo; puedes comentarlas):
+%     * En cada fila/columna/caja: suma = 45.
+%       (Las sumas no sustituyen a all_different; solo agregan chequeo/consistencia.)
+% - Salida: tablero formateado con separadores de cajas.
 % --------------------------------------------------------------
 
 include "globals.mzn";
@@ -28,7 +28,7 @@ constraint
     X[r,c] = G[r,c]
   );
 
-% ----------------------- Restricciones (all_different) ---------
+% ----------------------- Restricciones ---------
 % Filas: todos distintos
 constraint
   forall(r in S)(
@@ -47,7 +47,7 @@ constraint
     all_different([ X[3*br + i, 3*bc + j] | i in 1..3, j in 1..3 ])
   );
 
-% ----------------------- Redundantes (solo sumas) ----------------
+% ----------------------- Redundantes ----------------
 % --- Redundantes por FILAS ---
 constraint
   forall(r in S)(
@@ -70,12 +70,13 @@ constraint
 % Ramificar solo sobre celdas vacías (las pistas ya están fijas)
 array[int] of var DIG: BRANCH_VARS = [ X[r,c] | r in S, c in S where G[r,c] = 0 ];
 
-% Estrategia por defecto: first_fail + indomain_min (sencilla y efectiva)
-solve :: int_search(BRANCH_VARS, first_fail, indomain_min, complete) satisfy;
+% ----------------------- Búsqueda -------------------------------
+% Sin estrategia fija: usar la búsqueda por defecto del solver
+solve satisfy;
 
-% Otras opciones (comenta/ descomenta si quieres probar):
-% solve :: int_search(BRANCH_VARS, dom_w_deg,  indomain_split, complete) satisfy;
-% solve :: int_search(BRANCH_VARS, input_order, indomain_min, complete) satisfy;
+% solve :: int_search(POS_OF, first_fail, indomain_min, complete) satisfy;
+% solve :: int_search(POS_OF, dom_w_deg,  indomain_split, complete) satisfy;
+% solve :: int_search(POS_OF, input_order, indomain_min, complete) satisfy;
 
 % ----------------------- Salida --------------------------------
 output
