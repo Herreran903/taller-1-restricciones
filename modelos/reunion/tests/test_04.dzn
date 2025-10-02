@@ -1,0 +1,9 @@
+% Solo restricciones de separación
+N = 6;
+personas = ["Ana","Bruno","Carla","Diego","Elena","Fabio"];
+K_NEXT = 0;
+K_SEP  = 3;
+K_DIST = 0;
+NEXT = array2d(1..K_NEXT, 1..2, []);
+SEP  = array2d(1..K_SEP,  1..2, [ 1,2,  2,3,  4,5 ]); % Varias no-adyacencias
+DIST = array2d(1..K_DIST, 1..3, []);

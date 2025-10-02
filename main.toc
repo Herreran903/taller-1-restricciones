@@ -6,7 +6,7 @@
 \contentsline {subsection}{\numberline {1.4}Arboles de búsqueda}{6}{subsection.1.4}%
 \contentsline {subsection}{\numberline {1.5}Análisis}{6}{subsection.1.5}%
 \contentsline {subsection}{\numberline {1.6}Conclusiones}{6}{subsection.1.6}%
-\contentsline {section}{\numberline {2}Kakuro}{7}{section.2}%
+\contentsline {section}{\numberline {2}Kakuro}{6}{section.2}%
 \contentsline {subsection}{\numberline {2.1}Modelo}{7}{subsection.2.1}%
 \contentsline {subsection}{\numberline {2.2}Detalles de implementación}{7}{subsection.2.2}%
 \contentsline {subsection}{\numberline {2.3}Pruebas}{7}{subsection.2.3}%
@@ -16,7 +16,7 @@
 \contentsline {section}{\numberline {3}Secuencia Mágica}{7}{section.3}%
 \contentsline {subsection}{\numberline {3.1}Modelo}{7}{subsection.3.1}%
 \contentsline {subsection}{\numberline {3.2}Detalles de implementación}{7}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Pruebas}{8}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.3}Pruebas}{7}{subsection.3.3}%
 \contentsline {subsection}{\numberline {3.4}Árboles de búsqueda}{8}{subsection.3.4}%
 \contentsline {subsection}{\numberline {3.5}Análisis}{8}{subsection.3.5}%
 \contentsline {subsection}{\numberline {3.6}Conclusiones}{8}{subsection.3.6}%
@@ -29,15 +29,15 @@
 \contentsline {subsection}{\numberline {4.6}Conclusiones}{8}{subsection.4.6}%
 \contentsline {section}{\numberline {5}Ubicación de personas en una reunión}{9}{section.5}%
 \contentsline {subsection}{\numberline {5.1}Modelo}{9}{subsection.5.1}%
-\contentsline {subsection}{\numberline {5.2}Detalles de implementación}{9}{subsection.5.2}%
-\contentsline {subsection}{\numberline {5.3}Pruebas}{9}{subsection.5.3}%
-\contentsline {subsection}{\numberline {5.4}Árboles de búsqueda}{9}{subsection.5.4}%
-\contentsline {subsection}{\numberline {5.5}Análisis}{9}{subsection.5.5}%
-\contentsline {subsection}{\numberline {5.6}Conclusiones}{9}{subsection.5.6}%
-\contentsline {section}{\numberline {6}Construcción de un rectángulo}{9}{section.6}%
-\contentsline {subsection}{\numberline {6.1}Modelo}{10}{subsection.6.1}%
-\contentsline {subsection}{\numberline {6.2}Detalles de implementación}{10}{subsection.6.2}%
-\contentsline {subsection}{\numberline {6.3}Pruebas}{10}{subsection.6.3}%
-\contentsline {subsection}{\numberline {6.4}Árboles de búsqueda}{10}{subsection.6.4}%
-\contentsline {subsection}{\numberline {6.5}Análisis}{10}{subsection.6.5}%
-\contentsline {subsection}{\numberline {6.6}Conclusiones}{10}{subsection.6.6}%
+\contentsline {subsection}{\numberline {5.2}Detalles de implementación}{11}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Pruebas}{13}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Arboles de búsqueda}{13}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Análisis}{13}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Conclusiones}{14}{subsection.5.6}%
+\contentsline {section}{\numberline {6}Construcción de un rectángulo}{14}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Modelo}{14}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Detalles de implementación}{14}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Pruebas}{14}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Árboles de búsqueda}{14}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Análisis}{14}{subsection.6.5}%
+\contentsline {subsection}{\numberline {6.6}Conclusiones}{14}{subsection.6.6}%

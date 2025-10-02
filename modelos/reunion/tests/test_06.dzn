@@ -1,0 +1,9 @@
+% Sin preferencias (baseline)
+N = 5;
+personas = ["Ana","Bruno","Carla","Diego","Elena"];
+K_NEXT = 0;
+K_SEP  = 0;
+K_DIST = 0;
+NEXT = array2d(1..K_NEXT, 1..2, []);
+SEP  = array2d(1..K_SEP,  1..2, []);
+DIST = array2d(1..K_DIST, 1..3, []);

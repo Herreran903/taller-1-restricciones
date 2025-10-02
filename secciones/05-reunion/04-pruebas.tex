@@ -1,4 +1,21 @@
 % !TEX root = ../../main.tex
 
 \subsection{Pruebas}\label{sec:05-reunion-pruebas}
-Casos de prueba, entradas, métricas y tablas o figuras de apoyo.
+Se evaluó el modelo sobre una batería de instancias \texttt{.dzn}. En cada corrida se registraron \emph{tiempo}, \emph{nodos}, \emph{fallos}, \emph{profundidad} y \emph{número de soluciones}. A continuación se presenta una tabla plantilla para consolidar dichos resultados.
+
+\begin{table}[!htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{2.8pt}
+  \caption{Resultados de pruebas.}
+  \label{tab:pruebas-reunion}
+  \begin{tabular}{l l l l r r r r}
+    \toprule
+    \textbf{Archivo} & \textbf{Solver} & \textbf{Var heur} & \textbf{Val heur} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} \\
+    \midrule
+    example-e.dzn & Chuffed & first\_fail  & indomain\_min   & 0.000 & 0 & 0 & 0 \\
+    example-e.dzn & Gecode  & dom\_w\_deg  & indomain\_split & 0.000 & 0 & 0 & 0 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
