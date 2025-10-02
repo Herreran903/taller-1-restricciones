@@ -1,0 +1,9 @@
+% Pequeño con distance=0 y otra distancia simultánea
+N = 4;
+personas = ["Ana","Bruno","Carla","Diego"];
+K_NEXT = 0;
+K_SEP  = 0;
+K_DIST = 2;
+NEXT = array2d(1..K_NEXT, 1..2, []);
+SEP  = array2d(1..K_SEP,  1..2, []);
+DIST = array2d(1..K_DIST, 1..3, [ 1,2,0,  3,4,1 ]); % Ana~Bruno; Carla-Diego<=1

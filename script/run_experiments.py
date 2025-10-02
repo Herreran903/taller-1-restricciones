@@ -1,31 +1,134 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import argparse, subprocess, tempfile, re, csv, os, sys, glob, shutil, math
 from datetime import datetime
 from collections import defaultdict
 
-# ---------- Plantillas de solve ----------
-SOLVE_TEMPLATES = {
-    "ff_min":        "solve :: int_search(BRANCH_VARS, first_fail, indomain_min, complete) satisfy;",
-    "domdeg_split":  "solve :: int_search(BRANCH_VARS, dom_w_deg,  indomain_split, complete) satisfy;",
-    "input_min":     "solve :: int_search(BRANCH_VARS, input_order, indomain_min, complete) satisfy;",
-    "default":       None,
+# ==============================================================
+# Inyección de estrategia de búsqueda (genérica por modelo)
+# ==============================================================
+
+# Plantillas de 'solve' parametrizadas por el nombre de la lista de branching
+SOLVE_TEMPLATES_FMT = {
+    "ff_min":       "solve :: int_search({VARS}, first_fail,    indomain_min,   complete) satisfy;",
+    "domdeg_split": "solve :: int_search({VARS}, dom_w_deg,     indomain_split, complete) satisfy;",
+    "input_min":    "solve :: int_search({VARS}, input_order,   indomain_min,   complete) satisfy;",
+    "default":      None,  # no se reemplaza; se deja el solve original del modelo
 }
+
+# Localiza la primera línea 'solve ... satisfy;' para reemplazarla
 SOLVE_REGEX = re.compile(r"solve\s*(::\s*.*)?\s*satisfy\s*;", re.IGNORECASE | re.DOTALL)
 
-def inject_solve(model_text: str, strategy: str) -> str:
-    tmpl = SOLVE_TEMPLATES[strategy]
+# (Opcional) Etiqueta explícita de modelo en la cabecera:
+#   % MODEL_ID: sudoku
+#   % MODEL_ID: reunion
+MODEL_ID_RE = re.compile(r"^\s*%+\s*MODEL_ID:\s*(\w+)", re.IGNORECASE | re.MULTILINE)
+
+# Heurísticas para detectar tipo de modelo cuando no hay etiqueta
+HINTS = {
+    "sudoku": {
+        "must": [re.compile(r"\barray\s*\[\s*S\s*,\s*S\s*\]\s*of\s*var\b.*:\s*X\b", re.DOTALL)],
+        "any":  [re.compile(r"\bG\s*;\s*$", re.MULTILINE),
+                 re.compile(r"\ball_different\(\s*\[\s*X\[r,c\]")],
+    },
+    "reunion": {
+        "must": [re.compile(r"\barray\s*\[\s*S\s*\]\s*of\s*var\s*POS\s*:\s*POS_OF\b"),
+                 re.compile(r"\barray\s*\[\s*POS\s*\]\s*of\s*var\s*S\s*:\s*PER_AT\b"),
+                 re.compile(r"\binverse\s*\(\s*POS_OF\s*,\s*PER_AT\s*\)")],
+        "any":  [re.compile(r"\bNEXT\b"), re.compile(r"\bSEP\b"), re.compile(r"\bDIST\b")],
+    },
+}
+
+# ¿El modelo ya define una lista de branching?
+HAS_DECISION = re.compile(r"\bDECISION_VARS\b")
+HAS_BRANCH   = re.compile(r"\bBRANCH_VARS\b")
+
+def detect_model_kind(model_text: str) -> str:
+    """Detecta el tipo de modelo (sudoku|reunion|unknown) por etiqueta o heurística."""
+    m = MODEL_ID_RE.search(model_text)
+    if m:
+        tag = m.group(1).strip().lower()
+        if tag in ("sudoku", "reunion"):
+            return tag
+    for kind, patt in HINTS.items():
+        if all(rx.search(model_text) for rx in patt["must"]) and any(rx.search(model_text) for rx in patt["any"]):
+            return kind
+    return "unknown"
+
+def pick_existing_branch_name(model_text: str) -> str | None:
+    """Devuelve el nombre de la lista de branching si ya existe en el modelo."""
+    if HAS_DECISION.search(model_text): return "DECISION_VARS"
+    if HAS_BRANCH.search(model_text):   return "BRANCH_VARS"
+    return None
+
+def ensure_branch_vars(model_text: str, kind: str) -> tuple[str, str | None]:
+    """
+    Asegura que exista una lista 1D con variables para ramificación.
+    - Si el modelo ya la define (DECISION_VARS o BRANCH_VARS), la reutiliza.
+    - Si no existe y el 'kind' es conocido, la inyecta justo antes del 'solve'.
+    - Si no es posible, devuelve (modelo_original, None).
+    """
+    name = pick_existing_branch_name(model_text)
+    if name:
+        return model_text, name
+
+    if kind == "sudoku":
+        # Ramificar en celdas sin pista (siempre var int para máxima compatibilidad).
+        snippet = (
+            "array[int] of var int: DECISION_VARS = "
+            "[ X[r,c] | r in S, c in S where G[r,c] = 0 ];\n"
+        )
+        name = "DECISION_VARS"
+    elif kind == "reunion":
+        # Ramificar en las posiciones por persona (natural para next/separate/distance).
+        snippet = (
+            "array[int] of var int: DECISION_VARS = "
+            "[ POS_OF[p] | p in S ];\n"
+        )
+        name = "DECISION_VARS"
+    else:
+        return model_text, None
+
+    m = SOLVE_REGEX.search(model_text)
+    if not m:
+        # Si el modelo no tiene solve (inusual), no inyectamos.
+        return model_text, None
+
+    i = m.start()
+    patched = model_text[:i] + snippet + model_text[i:]
+    return patched, name
+
+def inject_solve_by_kind(model_text: str, strategy: str, kind: str) -> str:
+    """
+    Prepara el modelo para la estrategia pedida, detectando tipo de problema y
+    garantizando la lista de branching apropiada. Si no puede, cae a 'solve satisfy;'.
+    """
+    tmpl = SOLVE_TEMPLATES_FMT[strategy]
     if tmpl is None:
+        # 'default': no tocar el solve del modelo
         return model_text
-    if not SOLVE_REGEX.search(model_text):
+
+    # Aseguramos la lista de branching adecuada
+    txt, varname = ensure_branch_vars(model_text, kind)
+    if varname is None:
+        # No sabemos con qué ramificar -> no forzamos estrategia
+        return SOLVE_REGEX.sub("solve satisfy;", model_text, count=1)
+
+    if not SOLVE_REGEX.search(txt):
         raise RuntimeError("Could not find a 'solve ... satisfy;' line to replace.")
-    return SOLVE_REGEX.sub(tmpl, model_text, count=1)
+
+    solve_line = tmpl.format(VARS=varname)
+    return SOLVE_REGEX.sub(solve_line, txt, count=1)
+
+# ==============================================================
+# Utilidades varias (estadísticas, selección, tablas)
+# ==============================================================
 
 def format_time_sci(t, digits=3):
     if t is None:
         return None
     return f"{t:.{digits}e}"
 
-# ---------- Parseo de estadísticas ----------
 def parse_stats(mzn_text: str):
     """
     Lee líneas '%%%mzn-stat:' y '%%%mzn-status' desde stdout+stderr combinados.
@@ -39,10 +142,9 @@ def parse_stats(mzn_text: str):
                 k, v = kv.split("=", 1)
                 stats[k.strip()] = v.strip()
             else:
-                # Algunas builds pueden emitir sólo el status sin '='
                 stats["status"] = kv.strip()
 
-    # Cast
+    # Casts
     def cast_float(k):
         if k in stats:
             try:
@@ -66,10 +168,10 @@ def parse_stats(mzn_text: str):
 
 def compute_total_time(stats):
     """
-    Normaliza el tiempo:
-    - Si 'time' existe, úsalo.
-    - Si no, suma initTime + solveTime si al menos uno existe.
-    - Si nada existe, devuelve None.
+    Normaliza el tiempo total:
+    - Si 'time' existe, usarlo.
+    - Si no, usar initTime + solveTime si existen.
+    - Si nada existe, None.
     """
     t = stats.get("time")
     if isinstance(t, (int, float)):
@@ -80,7 +182,6 @@ def compute_total_time(stats):
         return (it or 0.0) + (st or 0.0)
     return None
 
-# ---------- Selección de interesantes ----------
 def pareto_min(rows, keys):
     idxs = []
     for i, ri in enumerate(rows):
@@ -126,7 +227,7 @@ def shortlist_from_rows(rows, topk=2, delta=1.5, iqr_k=1.5):
     shortlisted = []
 
     for f, group in by_file.items():
-        # 1) extremos por instancia (best/worst time) usando time_raw (float)
+        # 1) extremos por instancia (best/worst time)
         g_time = [r for r in group if r.get("time_raw") is not None]
         if g_time:
             best = sorted(
@@ -144,12 +245,12 @@ def shortlist_from_rows(rows, topk=2, delta=1.5, iqr_k=1.5):
             for r in worst:
                 shortlisted.append((r, "worst-time"))
 
-        # 2) Pareto en (time_raw, nodes, failures)
+        # 2) Frontera de Pareto en (time_raw, nodes, failures)
         idxs = pareto_min(group, keys=["time_raw", "nodes", "failures"])
         for i in idxs:
             shortlisted.append((group[i], "pareto-front"))
 
-        # 3) Outliers IQR en time_raw y nodes
+        # 3) Outliers (IQR) en time_raw y nodes
         for metric in ["time_raw", "nodes"]:
             vals = [r[metric] for r in group if r.get(metric) is not None]
             lo, hi = iqr_fences(vals, k=iqr_k)
@@ -228,6 +329,10 @@ def emit_latex_table(rows, path, caption="Shortlist de corridas interesantes", l
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
+# ==============================================================
+# Main
+# ==============================================================
+
 def main():
     ap = argparse.ArgumentParser()
     # ÚNICO base para rutas de salida
@@ -262,15 +367,18 @@ def main():
 
     with open(args.model, "r", encoding="utf-8") as f:
         model_text = f.read()
+    model_kind = detect_model_kind(model_text)
 
     rows = []
     for solver in args.solver:
         for strat in args.strategy:
+            # Genera una versión temporal del modelo con la estrategia (si aplica)
             try:
-                mod_txt = inject_solve(model_text, strat)
+                mod_txt = inject_solve_by_kind(model_text, strat, model_kind)
             except Exception as e:
                 print(f"[WARN] Strategy {strat}: {e}; using default solve.", file=sys.stderr)
                 mod_txt = model_text
+
             with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpm:
                 tmpm.write(mod_txt)
                 tmpm.flush()
@@ -290,6 +398,19 @@ def main():
                     ]
                     proc = subprocess.run(cmd, capture_output=True, text=True)
                     stdout, stderr, rc = proc.stdout, proc.stderr, proc.returncode
+
+                    # Fallback: si falló por identificador indefinido (p. ej. lista de branching),
+                    # reintenta con solve por defecto.
+                    if rc != 0 and ("undefined identifier" in (stdout + stderr)):
+                        print(f"[WARN] {solver}/{strat}: retrying with default solve.", file=sys.stderr)
+                        mod_txt2 = inject_solve_by_kind(model_text, "default", model_kind)
+                        with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpm2:
+                            tmpm2.write(mod_txt2)
+                            tmpm2.flush()
+                            tmpm_path2 = tmpm2.name
+                        cmd[-2] = tmpm_path2
+                        proc = subprocess.run(cmd, capture_output=True, text=True)
+                        stdout, stderr, rc = proc.stdout, proc.stderr, proc.returncode
 
                     # escribir salidas en BASE/results
                     runs_dir = rel("results/artifacts")
@@ -334,8 +455,7 @@ def main():
         w = csv.DictWriter(
             fcsv,
             fieldnames=["file","solver","strategy","rc","status","time_raw","time",
-            "nodes","failures","peakDepth","solutions","restarts","initTime","solveTime"]
-
+                        "nodes","failures","peakDepth","solutions","restarts","initTime","solveTime"]
         )
         w.writeheader()
         w.writerows(rows)
@@ -351,14 +471,14 @@ def main():
             w = csv.DictWriter(
                 fsl,
                 fieldnames=["file","solver","strategy","reason","time","nodes","failures",
-            "peakDepth","solutions","restarts","rc","status","initTime","solveTime","time_raw"]
+                            "peakDepth","solutions","restarts","rc","status","initTime","solveTime","time_raw"]
             )
             w.writeheader()
             for r in sl:
                 w.writerow(r)
         print(f"Saved shortlist CSV: {sl_csv} ({len(sl)} rows)")
 
-        # Copiar artefactos
+        # Copiar artefactos de la shortlist
         if args.copy_shortlist_to:
             target_dir = rel(args.copy_shortlist_to)
             os.makedirs(target_dir, exist_ok=True)
@@ -366,9 +486,9 @@ def main():
             for r in sl:
                 tag = f"{r['file']}__{r['solver']}__{r['strategy']}"
                 for ext in [".log.txt", ".sol.txt"]:
-                    src = os.path.join(rel("results"), tag + ext)
+                    src = os.path.join(rel("results"), "artifacts", f"{tag}{ext}")
                     if os.path.exists(src):
-                        dst = os.path.join(target_dir, tag + ext)
+                        dst = os.path.join(target_dir, f"{tag}{ext}")
                         shutil.copy2(src, dst)
                         copied += 1
             print(f"Copied {copied} artifacts to {target_dir}")
