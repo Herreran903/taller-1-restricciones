@@ -5,19 +5,14 @@ from datetime import datetime
 from collections import defaultdict
 
 # ==============================================================
-# Inyección de estrategia de búsqueda (genérica por modelo)
+# Inyección de estrategia de búsqueda (model-aware)
 # ==============================================================
 
-# Plantillas de 'solve' parametrizadas por el nombre de la lista de branching
-SOLVE_TEMPLATES_FMT = {
-    "ff_min":       "solve :: int_search({VARS}, first_fail,    indomain_min,   complete) satisfy;",
-    "domdeg_split": "solve :: int_search({VARS}, dom_w_deg,     indomain_split, complete) satisfy;",
-    "input_min":    "solve :: int_search({VARS}, input_order,   indomain_min,   complete) satisfy;",
-    "default":      None,  # no se reemplaza; se deja el solve original del modelo
-}
-
-# Localiza la primera línea 'solve ... satisfy;' para reemplazarla
-SOLVE_REGEX = re.compile(r"solve\s*(::\s*.*)?\s*satisfy\s*;", re.IGNORECASE | re.DOTALL)
+# Regex para localizar la primera línea 'solve ... satisfy;'
+SOLVE_REGEX = re.compile(
+    r"(?m)^[ \t]*(?!%)[ \t]*solve\s*(::[^\n]*)?\s*satisfy\s*;",
+    re.IGNORECASE
+)
 
 # (Opcional) Etiqueta explícita de modelo en la cabecera:
 #   % MODEL_ID: sudoku
@@ -63,55 +58,96 @@ def pick_existing_branch_name(model_text: str) -> str | None:
 
 def ensure_branch_vars(model_text: str, kind: str) -> tuple[str, str | None]:
     """
-    Asegura que exista una lista 1D con variables para ramificación.
-    - Si el modelo ya la define (DECISION_VARS o BRANCH_VARS), la reutiliza.
-    - Si no existe y el 'kind' es conocido, la inyecta justo antes del 'solve'.
-    - Si no es posible, devuelve (modelo_original, None).
+    Asegura una lista 1D con variables de ramificación.
+    - Reusa DECISION_VARS/BRANCH_VARS si existen.
+    - Para 'sudoku' evita depender de S/DIG: usa index_set_1_of_2/2_of_2 y 'var int'.
+    - Inserta justo antes del 'solve'.
     """
     name = pick_existing_branch_name(model_text)
     if name:
         return model_text, name
 
     if kind == "sudoku":
-        # Ramificar en celdas sin pista (siempre var int para máxima compatibilidad).
+        # Robustez: no asumimos S ni DIG; opcionalmente filtramos por G[r,c]==0 si G existe.
         snippet = (
-            "array[int] of var int: DECISION_VARS = "
-            "[ X[r,c] | r in S, c in S where G[r,c] = 0 ];\n"
+            "% === Injected by runner: DECISION_VARS (Sudoku) ===\n"
+            "array[int] of var int: DECISION_VARS =\n"
+            "  [ X[r,c] |\n"
+            "    r in index_set_1_of_2(X),\n"
+            "    c in index_set_2_of_2(X)\n"
+            "    where (if exists(index_set_1_of_2(G)) then G[r,c] = 0 else true endif)\n"
+            "  ];\n"
         )
         name = "DECISION_VARS"
+
     elif kind == "reunion":
-        # Ramificar en las posiciones por persona (natural para next/separate/distance).
         snippet = (
-            "array[int] of var int: DECISION_VARS = "
-            "[ POS_OF[p] | p in S ];\n"
+            "% === Injected by runner: DECISION_VARS (Reunión) ===\n"
+            "array[int] of var int: DECISION_VARS = [ POS_OF[p] | p in S ];\n"
         )
         name = "DECISION_VARS"
+
     else:
+        # Desconocido: no sabemos extraer decisiones de forma segura
         return model_text, None
 
     m = SOLVE_REGEX.search(model_text)
     if not m:
-        # Si el modelo no tiene solve (inusual), no inyectamos.
         return model_text, None
 
     i = m.start()
     patched = model_text[:i] + snippet + model_text[i:]
     return patched, name
 
+# ---- Plantillas de 'solve' separadas por modelo ----
+# Clave especial "default": None => no reemplaza el 'solve' del modelo
+SOLVE_TEMPLATES_BY_MODEL = {
+    "sudoku": {
+        "ff_min":     "solve :: int_search({VARS}, first_fail,  indomain_min,   complete) satisfy;",
+        "wdeg_split": "solve :: int_search({VARS}, dom_w_deg,   indomain_split, complete) satisfy;",
+        "default":    None,
+    },
+    "reunion": {
+        "ff_min":     "solve :: int_search({VARS}, first_fail,  indomain_min,   complete) satisfy;",
+        "wdeg_split": "solve :: int_search({VARS}, dom_w_deg,   indomain_split, complete) satisfy;",
+        "default":    None,
+    },
+    "unknown": {
+        "ff_min":     "solve :: int_search({VARS}, first_fail,  indomain_min,   complete) satisfy;",
+        "wdeg_split": "solve :: int_search({VARS}, dom_w_deg,   indomain_split, complete) satisfy;",
+        "default":    None,
+    },
+}
+
+# Aliases aceptados para compatibilidad (p. ej., si venías usando 'domdeg_split')
+STRAT_ALIASES = {
+    "domdeg_split": "wdeg_split",
+}
+
+def normalize_strategy_name(s: str) -> str:
+    s = s.strip().lower()
+    return STRAT_ALIASES.get(s, s)
+
 def inject_solve_by_kind(model_text: str, strategy: str, kind: str) -> str:
     """
     Prepara el modelo para la estrategia pedida, detectando tipo de problema y
     garantizando la lista de branching apropiada. Si no puede, cae a 'solve satisfy;'.
     """
-    tmpl = SOLVE_TEMPLATES_FMT[strategy]
+    strategy = normalize_strategy_name(strategy)
+    templates = SOLVE_TEMPLATES_BY_MODEL.get(kind, SOLVE_TEMPLATES_BY_MODEL["unknown"])
+    if strategy not in templates:
+        # estrategia desconocida -> no tocar el solve
+        return model_text
+
+    tmpl = templates[strategy]
     if tmpl is None:
         # 'default': no tocar el solve del modelo
         return model_text
 
-    # Aseguramos la lista de branching adecuada
+    # Asegurar la lista de branching apropiada para el modelo
     txt, varname = ensure_branch_vars(model_text, kind)
     if varname is None:
-        # No sabemos con qué ramificar -> no forzamos estrategia
+        # No sabemos con qué ramificar -> reemplazamos con solve satisfy;
         return SOLVE_REGEX.sub("solve satisfy;", model_text, count=1)
 
     if not SOLVE_REGEX.search(txt):
@@ -318,8 +354,12 @@ def emit_latex_table(rows, path, caption="Shortlist de corridas interesantes", l
     lines.append("    \\hline")
     for r in rows:
         vals = [r.get(k, "") for k in cols]
-        if isinstance(vals[4], float):
-            vals[4] = f"{vals[4]:.3f}"
+        # formateo de tiempo si viene en float
+        try:
+            if isinstance(vals[4], float):
+                vals[4] = f"{vals[4]:.3f}"
+        except Exception:
+            pass
         line = " & ".join([str(v) if v is not None else "" for v in vals]) + " \\\\"
         lines.append("    " + line)
     lines.append("    \\hline")
@@ -340,8 +380,10 @@ def main():
     # Barrido
     ap.add_argument("--model", required=True)
     ap.add_argument("--data-dir", required=True)
-    ap.add_argument("--solver", nargs="+", default=["chuffed"])
-    ap.add_argument("--strategy", nargs="+", default=["ff_min", "domdeg_split", "input_min", "default"])
+    ap.add_argument("--solver", nargs="+", default=["gecode", "chuffed"], help="Lista de solvers (e.g., gecode chuffed)")
+    # Tres estrategias por defecto (idénticas para ambos solvers)
+    ap.add_argument("--strategy", nargs="+", default=["ff_min", "wdeg_split", "default"],
+                    help="Estrategias: ff_min | wdeg_split (alias: domdeg_split) | default")
     ap.add_argument("--time-limit", type=int, default=60000)
     # Rutas (relativas a base-dir por defecto)
     ap.add_argument("--out", default="results/results.csv")
@@ -369,15 +411,40 @@ def main():
         model_text = f.read()
     model_kind = detect_model_kind(model_text)
 
+    # Validar y normalizar estrategias
+    norm_strategies = []
+    for s in args.strategy:
+        ns = normalize_strategy_name(s)
+        # permitir solo las 3 soportadas
+        if ns not in ("ff_min", "wdeg_split", "default"):
+            print(f"[WARN] estrategia '{s}' no soportada; se ignora.", file=sys.stderr)
+            continue
+        norm_strategies.append(ns)
+    if not norm_strategies:
+        norm_strategies = ["ff_min", "wdeg_split", "default"]
+
     rows = []
+    runs_dir = rel("results/artifacts")
+    os.makedirs(runs_dir, exist_ok=True)
+    fzn_dir = rel("results/flat")
+    os.makedirs(fzn_dir, exist_ok=True)
+
     for solver in args.solver:
-        for strat in args.strategy:
+        for strat in norm_strategies:
             # Genera una versión temporal del modelo con la estrategia (si aplica)
             try:
                 mod_txt = inject_solve_by_kind(model_text, strat, model_kind)
             except Exception as e:
                 print(f"[WARN] Strategy {strat}: {e}; using default solve.", file=sys.stderr)
                 mod_txt = model_text
+
+            # --- DEBUG: muestra la línea 'solve' resultante (previa a compilar) ---
+            try:
+                msolve = SOLVE_REGEX.search(mod_txt)
+                solve_preview = mod_txt[msolve.start():msolve.end()] if msolve else "<no-solve>"
+                print(f"[DEBUG] {solver}/{strat}: solve-line => {solve_preview}")
+            except Exception:
+                pass
 
             with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpm:
                 tmpm.write(mod_txt)
@@ -388,40 +455,86 @@ def main():
                 for data_path in data_files:
                     base = os.path.splitext(os.path.basename(data_path))[0]
                     tag  = f"{base}__{solver}__{strat}"
-                    cmd = [
-                        "minizinc",
-                        "--solver", solver,
-                        "--statistics",
-                        "--time-limit", str(args.time_limit),
-                        tmpm_path,
-                        data_path
-                    ]
-                    proc = subprocess.run(cmd, capture_output=True, text=True)
-                    stdout, stderr, rc = proc.stdout, proc.stderr, proc.returncode
 
-                    # Fallback: si falló por identificador indefinido (p. ej. lista de branching),
-                    # reintenta con solve por defecto.
-                    if rc != 0 and ("undefined identifier" in (stdout + stderr)):
-                        print(f"[WARN] {solver}/{strat}: retrying with default solve.", file=sys.stderr)
+                    # (Preview opcional) contar DECISION_VARS si existe
+                    if "DECISION_VARS" in mod_txt:
+                        try:
+                            with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpc:
+                                tmpc.write(mod_txt + "\n")
+                                tmpc.write('output ["#DECISION_VARS=", show(length(DECISION_VARS)), "\\n"];')
+                                tmpc.flush()
+                                preview_proc = subprocess.run(
+                                    ["minizinc", "--solver", solver, "--time-limit", "1000", tmpc.name, data_path],
+                                    capture_output=True, text=True
+                                )
+                                if preview_proc.returncode == 0:
+                                    mcount = re.search(r"#DECISION_VARS=\s*(\d+)", preview_proc.stdout)
+                                    if mcount:
+                                        print(f"[DEBUG] {solver}/{strat}/{base}: DECISION_VARS size = {mcount.group(1)}")
+                        except Exception:
+                            pass
+
+                    # ----------------------------------------------------------------
+                    # Compilar a .fzn para inspeccionar 'branch' y luego ejecutar
+                    # ----------------------------------------------------------------
+                    fzn_path = os.path.join(fzn_dir, f"{tag}.fzn")
+                    cmd_compile = ["minizinc", "--solver", solver, "-c", tmpm_path, data_path, "-o", fzn_path]
+                    proc_c = subprocess.run(cmd_compile, capture_output=True, text=True)
+                    stdout_c, stderr_c, rc_c = proc_c.stdout, proc_c.stderr, proc_c.returncode
+
+                    # Si la compilación falla por identificador indefinido, reintenta con solve por defecto
+                    if rc_c != 0 and ("undefined identifier" in (stdout_c + stderr_c).lower()):
+                        print(f"[WARN] {solver}/{strat}: retrying (compile) with default solve.", file=sys.stderr)
                         mod_txt2 = inject_solve_by_kind(model_text, "default", model_kind)
                         with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpm2:
                             tmpm2.write(mod_txt2)
                             tmpm2.flush()
                             tmpm_path2 = tmpm2.name
-                        cmd[-2] = tmpm_path2
+                        fzn_path = os.path.join(fzn_dir, f"{tag}.fallback.fzn")
+                        cmd_compile = ["minizinc", "--solver", solver, "-c", tmpm_path2, data_path, "-o", fzn_path]
+                        proc_c = subprocess.run(cmd_compile, capture_output=True, text=True)
+                        stdout_c, stderr_c, rc_c = proc_c.stdout, proc_c.stderr, proc_c.returncode
+
+                    # Loguear branch-lines del FlatZinc
+                    if os.path.exists(fzn_path):
+                        try:
+                            with open(fzn_path, "r", encoding="utf-8", errors="ignore") as ff:
+                                branch_lines = [ln.strip() for ln in ff if ln.startswith("branch")]
+                            if branch_lines:
+                                print(f"[DEBUG] branch-lines ({solver}/{strat}/{base}):")
+                                for ln in branch_lines[:8]:
+                                    print("   ", ln)
+                        except Exception:
+                            pass
+
+                    # Ejecutar el fzn con estadísticas
+                    cmd = ["minizinc", "--solver", solver, "--statistics", "--time-limit", str(args.time_limit), fzn_path]
+                    proc = subprocess.run(cmd, capture_output=True, text=True)
+                    stdout, stderr, rc = proc.stdout, proc.stderr, proc.returncode
+
+                    # Fallback en ejecución si hubo error
+                    if rc != 0 and ("undefined identifier" in (stdout + stderr).lower()):
+                        print(f"[WARN] {solver}/{strat}: retrying (run) with default solve.", file=sys.stderr)
+                        mod_txt2 = inject_solve_by_kind(model_text, "default", model_kind)
+                        with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpm2:
+                            tmpm2.write(mod_txt2)
+                            tmpm2.flush()
+                            tmpm_path2 = tmpm2.name
+                        fzn_path2 = os.path.join(fzn_dir, f"{tag}.runfallback.fzn")
+                        cmd_compile2 = ["minizinc", "--solver", solver, "-c", tmpm_path2, data_path, "-o", fzn_path2]
+                        subprocess.run(cmd_compile2, capture_output=True, text=True)
+                        cmd = ["minizinc", "--solver", solver, "--statistics", "--time-limit", str(args.time_limit), fzn_path2]
                         proc = subprocess.run(cmd, capture_output=True, text=True)
                         stdout, stderr, rc = proc.stdout, proc.stderr, proc.returncode
 
-                    # escribir salidas en BASE/results
-                    runs_dir = rel("results/artifacts")
-                    os.makedirs(runs_dir, exist_ok=True)
+                    # Guardar salidas
                     with open(os.path.join(runs_dir, f"{tag}.sol.txt"), "w", encoding="utf-8") as fsol:
                         fsol.write(stdout)
                     with open(os.path.join(runs_dir, f"{tag}.log.txt"), "w", encoding="utf-8") as flog:
                         flog.write("CMD: " + " ".join(cmd) + "\n\n")
                         flog.write(stdout + "\n\n--- STDERR ---\n" + stderr)
 
-                    # Parsear stdout+stderr juntos
+                    # Parseo stats
                     stats = parse_stats(stdout + "\n" + stderr)
 
                     # Tiempo total normalizado
