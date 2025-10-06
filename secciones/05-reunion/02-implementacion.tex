@@ -2,39 +2,11 @@
 
 \subsection{Detalles de implementación}\label{sec:05-reunion-impl}
 
-\subsubsection*{Archivos y organización}
-\begin{itemize}
-  \item \texttt{reunion.mzn}: modelo completo.
-  \item \texttt{tests/*.dzn}: instancias con:
-    \begin{itemize}
-      \item \(\texttt{N}\), \(\texttt{personas}\) (vector de nombres),
-      \item \(\texttt{K\_NEXT}\), \(\texttt{K\_SEP}\), \(\texttt{K\_DIST}\),
-      \item \(\texttt{NEXT}\in \mathbb{Z}^{K_{\textsf{next}}\times 2}\), \(\texttt{SEP}\in \mathbb{Z}^{K_{\textsf{sep}}\times 2}\),
-      \item \(\texttt{DIST}\in \mathbb{Z}^{K_{\textsf{dist}}\times 3}\) con triples \((A,B,M)\).
-    \end{itemize}
-\end{itemize}
-
 \subsubsection*{Modelo}
-\subsubsection*{Modelo}
-Usamos dos vistas de la permutación, \(POS\_OF\) (persona\(\to\)posición) y \(PER\_AT\) (posición\(\to\)persona), enlazadas con \textit{inverse}, porque refuerzan la propagación sin cambiar la semántica. Con una sola vista (p. ej., \(POS\_OF\)) ya podríamos expresar \(|POS\_OF_A-POS\_OF_B|\), pero la canalización bidireccional permite a los propagadores recortar dominios antes y con menos fallos que usar solo \textit{all\_different}. Además, la salida es más directa y limpia: imprimir la fila en orden \(1..N\) se reduce a recorrer \(PER\_AT[i]\) sin accesos indirectos ni restricciones \textit{element}. También simplifica la ruptura de simetría \(PER\_AT[1]<PER\_AT[N]\). En suma, la doble vista mejora eficiencia, claridad de salida y facilidad de formulación, manteniendo dominios exactos \(POS=S=\{1,\dots,N\}\) sin sentinelas.
-
+Se usan dos vistas de la permutación: \texttt{POS\_OF} (persona->posición) y \texttt{PER\_AT} (posición->persona), enlazadas con \textit{inverse}. Esta canalización refuerza la propagación respecto a usar solo una vista con \textit{all\_different}, simplifica la salida (recorriendo \texttt{PER\_AT} en orden) y facilita la ruptura de simetría comparando extremos.
 
 \subsubsection*{Restricciones redundantes}
-Se activan de manera permanente porque fortalecen la propagación sin alterar el conjunto de soluciones. En primer lugar, se duplican las vistas de permutación mediante \textit{all\_different} tanto sobre \(POS\_OF\) como sobre \(PER\_AT\); aunque la biección ya está garantizada por \textit{inverse}(\(POS\_OF,PER\_AT\)), imponer \(\textit{all\_different}([POS\_OF_p\mid p\in S])\) y \(\textit{all\_different}([PER\_AT_i\mid i\in POS])\) añade redundancia estructural que los propagadores explotan para reducir dominios antes y con menos fallos. En segundo lugar, la igualdad
-\[
-\sum_{p\in S} POS\_OF_p \;=\; \frac{N(N+1)}{2}
-\]
-no introduce información nueva sobre las soluciones, pero actúa como restricción global lineal útil cuando quedan pocas posiciones libres, cerrando brechas y detectando inconsistencias parciales con bajo costo. En tercer lugar, se materializa la implicación local \(\textsf{distance}(A,B,0)\Rightarrow |POS\_OF_A-POS\_OF_B|=1\); esta equivalencia ya está contenida semánticamente en \(\textsf{distance}\), pero declararla explícitamente evita que el solver deba inferirla por combinación de propagadores, acelerando los casos triviales de “cero personas entre \(A\) y \(B\)”.
-
-Además, integramos como redundantes los chequeos de consistencia de datos, pues acotan tempranamente la búsqueda sin modificar el conjunto de soluciones factibles cuando la instancia es válida. Exigir \(A,B\in S\) y \(A\neq B\) en \(\texttt{NEXT}\) y \(\texttt{SEP}\), así como \(A,B\in S\), \(A\neq B\) y \(0\le M\le N-2\) en \(\texttt{DIST}\), no cambia la semántica del problema, pero evita que dominios inválidos o cotas imposibles entren al árbol de búsqueda. De igual modo, prohibir la contradicción obvia entre \(\textsf{next}\) y \(\textsf{separate}\) para el mismo par \((A,B)\) (en cualquier orden) no elimina soluciones legítimas: únicamente descarta instancias mal especificadas o ramas inconsistentes que, de otro modo, el solver podaría más tarde a mayor costo.
+Se imponen de forma permanente porque fortalecen la propagación sin cambiar soluciones. Además de \textit{inverse}, se añaden \textit{all\_different} sobre ambas vistas y una igualdad lineal sobre \texttt{POS\_OF} para cerrar huecos cuando quedan pocas posiciones. También se materializa la implicación local de \textit{distance} con cero personas entre dos individuos y se validan datos de entrada (índices válidos, pares distintos, cotas coherentes) y la no contradicción entre \textit{next} y \textit{separate}. Todo esto evita ramas inválidas y podas tardías.
 
 \subsubsection*{Ruptura de simetría}
-El modelo presenta simetría de reflexión izquierda–derecha: si \([p_1,\dots,p_N]\) es solución, \([p_N,\dots,p_1]\) también lo es, pues todas las restricciones dependen de distancias absolutas entre posiciones (\(|POS\_OF_A-POS\_OF_B|\)) y de la biyección \textit{inverse}, que son invariantes ante la transformación \(i\mapsto N{+}1{-}i\). Por ello conviene imponer \(PER\_AT[1]<PER\_AT[N]\), que fija un representante canónico por cada par de soluciones espejo sin eliminar soluciones no simétricas: dado que \(PER\_AT[1]\neq PER\_AT[N]\), exactamente una de las dos disposiciones reflejadas satisface \(<\), mientras la otra la viola. Esta ruptura reduce a la mitad, en términos ideales, el espacio de búsqueda explorado por el solver sin afectar satisfacibilidad ni, si se añadiera un objetivo, la óptimalidad. La condición es segura mientras no existan reglas que distingan explícitamente los extremos, caso en el cual la simetría ya no está presente.
-
-\subsubsection*{Estrategias de búsqueda}
-Para las pruebas sobre el modelo de Reunion se plantean diferentes combi-
-naciones de heurísticas, con el objetivo de analizar su impacto en el tamaño
-del árbol de búsqueda y el tiempo de resolución.
-
-\subsubsection*{Solvers}
-Se utilizarán los \emph{solvers} XXX, YYY y ZZZ para contrastar el comportamiento del modelo bajo motores de propagación diferentes. El objetivo es observar variaciones en tiempo y tamaño del árbol manteniendo la misma formulación.
+Existe simetría de reflexión izquierda–derecha: invertir la fila produce otra solución equivalente. Para evitar duplicados se fija un orden canónico comparando los extremos (\texttt{PER\_AT[1]} frente a \texttt{PER\_AT[N]}). Esto reduce la búsqueda sin afectar satisfacibilidad ni óptimos, siempre que no haya reglas que distingan explícitamente los extremos.

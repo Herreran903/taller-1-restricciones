@@ -1,121 +1,37 @@
 % !TEX root = ../../main.tex
-
 \subsection{Modelo}\label{sec:05-reunion-modelo}
-
 \subsubsection*{Parámetros}
-
 \begin{description}
-  \item[\textbf{P1 — \(N\):}] Número de personas a ubicar.
-  \[
-    N\in\mathbb{Z}_{\ge 1}.
-  \]
-
-  \item[\textbf{P2 — \(S\):}] Índices válidos para personas.
-  \[
-    S=\{1,\dots,N\}.
-  \]
-
-  \item[\textbf{P3 — \(POS\):}] Conjunto de posiciones disponibles en la fila.
-  \[
-    POS=\{1,\dots,N\}.
-  \]
-
-  \item[\textbf{P4 — \(\texttt{personas}\):}] Vector de nombres.
-  \[
-    \texttt{personas}\in \text{String}^{S}.
-  \]
-
-  \item[\textbf{P5 — \(K_{\textsf{next}}, K_{\textsf{sep}}, K_{\textsf{dist}}\):}] Cantidad de preferencias de cada tipo.
-  \[
-    K_{\textsf{next}},\,K_{\textsf{sep}},\,K_{\textsf{dist}}\in\mathbb{Z}_{\ge 0}.
-  \]
-
-  \item[\textbf{P6 — \(\texttt{NEXT},\texttt{SEP},\texttt{DIST}\):}] Matrices de preferencias:
-  \[
-    \texttt{NEXT}\in S^{K_{\textsf{next}}\times 2},\quad
-    \texttt{SEP}\in S^{K_{\textsf{sep}}\times 2},\quad
-    \texttt{DIST}\in \big(S\times S\times \{0,\dots,N-2\}\big)^{K_{\textsf{dist}}}.
-  \]
-  Cada fila codifica un par (o trío) de personas y, en \(\texttt{DIST}\), una cota \(M\) de separación.
+  \item[\textbf{P1 — \(N\):}] Número de personas a ubicar. \(N\in\mathbb{Z}_{\ge 1}.\)
+  \item[\textbf{P2 — \(S\):}] Índices válidos para personas. \(S=\{1,\dots,N\}.\)
+  \item[\textbf{P3 — \(POS\):}] Conjunto de posiciones disponibles en la fila. \(POS=\{1,\dots,N\}.\)
+  \item[\textbf{P4 — \(\texttt{personas}\):}] Vector de nombres. \(\texttt{personas}\in \text{String}^{S}.\)
+  \item[\textbf{P5 — \(K_{\textsf{next}}, K_{\textsf{sep}}, K_{\textsf{dist}}\):}] Cantidad de preferencias de cada tipo. \(K_{\textsf{next}},\,K_{\textsf{sep}},\,K_{\textsf{dist}}\in\mathbb{Z}_{\ge 0}.\)
+  \item[\textbf{P6 — \(\texttt{NEXT},\texttt{SEP},\texttt{DIST}\):}] Matrices de preferencias: \(\texttt{NEXT}\in S^{K_{\textsf{next}}\times 2},\ \texttt{SEP}\in S^{K_{\textsf{sep}}\times 2},\ \texttt{DIST}\in \big(S\times S\times \{0,\dots,N-2\}\big)^{K_{\textsf{dist}}}.\) Cada fila codifica un par (o trío) de personas y, en \(\texttt{DIST}\), una cota \(M\) de separación.
 \end{description}
-
 \subsubsection*{Variables}
-
 \begin{description}
-  \item[\textbf{V1 — \(POS\_OF_p\):}] Posición que ocupa la persona \(p\).
-  \[
-    POS\_OF_p\in POS,\qquad p\in S.
-  \]
-
-  \item[\textbf{V2 — \(PER\_AT_i\):}] Persona ubicada en la posición \(i\).
-  \[
-    PER\_AT_i\in S,\qquad i\in POS.
-  \]
+  \item[\textbf{V1 — \(POS\_OF_p\):}] Posición que ocupa la persona \(p\). \(POS\_OF_p\in POS,\ p\in S.\)
+  \item[\textbf{V2 — \(PER\_AT_i\):}] Persona ubicada en la posición \(i\). \(PER\_AT_i\in S,\ i\in POS.\)
 \end{description}
-
 \subsubsection*{Restricciones principales}
-
 \begin{description}
-  \item[\textbf{R1 — Biección (canalización):}] La asignación es una permutación válida: cada persona ocupa exactamente una posición y cada posición contiene exactamente una persona.
-  \[
-    \textit{inverse}(POS\_OF,\,PER\_AT).
-  \]
-
-  \item[\textbf{R2 — Preferencias \(\textsf{next}(A,B)\):}] \(A\) y \(B\) deben quedar adyacentes.
-  \[
-    \forall (A,B)\in \texttt{NEXT}:\quad \big|\,POS\_OF_A - POS\_OF_B\,\big| = 1.
-  \]
-
-  \item[\textbf{R3 — Preferencias \(\textsf{separate}(A,B)\):}] \(A\) y \(B\) no pueden quedar adyacentes.
-  \[
-    \forall (A,B)\in \texttt{SEP}:\quad \big|\,POS\_OF_A - POS\_OF_B\,\big| \ge 2.
-  \]
-
-  \item[\textbf{R4 — Preferencias \(\textsf{distance}(A,B,M)\):}] A lo sumo \(M\) personas entre \(A\) y \(B\), equivalente a cota sobre distancia de posiciones.
-  \[
-    \forall (A,B,M)\in \texttt{DIST}:\quad \big|\,POS\_OF_A - POS\_OF_B\,\big|\ \le\ M+1.
-  \]
+  \item[\textbf{R1 — Biección (canalización):}] La asignación es una permutación válida: cada persona ocupa exactamente una posición y cada posición contiene exactamente una persona. \(\textit{inverse}(POS\_OF,\,PER\_AT).\)
+  \item[\textbf{R2 — Preferencias \(\textsf{next}(A,B)\):}] \(A\) y \(B\) deben quedar adyacentes. \(\forall (A,B)\in \texttt{NEXT}:\ \big|\,POS\_OF_A - POS\_OF_B\,\big| = 1.\)
+  \item[\textbf{R3 — Preferencias \(\textsf{separate}(A,B)\):}] \(A\) y \(B\) no pueden quedar adyacentes. \(\forall (A,B)\in \texttt{SEP}:\ \big|\,POS\_OF_A - POS\_OF_B\,\big| \ge 2.\)
+  \item[\textbf{R4 — Preferencias \(\textsf{distance}(A,B,M)\):}] A lo sumo \(M\) personas entre \(A\) y \(B\), equivalente a cota sobre distancia de posiciones. \(\forall (A,B,M)\in \texttt{DIST}:\ \big|\,POS\_OF_A - POS\_OF_B\,\big|\ \le\ M+1.\)
 \end{description}
-
 \subsubsection*{Restricciones redundantes}
-
 \begin{description}
-  \item[\textbf{R5 — Refuerzo de permutación:}] Duplican la biección y aceleran la propagación.
-  \[
-    \textit{all\_different}\big([POS\_OF_p\mid p\in S]\big),\qquad
-    \textit{all\_different}\big([PER\_AT_i\mid i\in POS]\big),
-  \]
-  \[
-    \sum_{p\in S} POS\_OF_p\ =\ \frac{N(N+1)}{2}.
-  \]
-
-  \item[\textbf{R6 — Validación de datos:}] Índices válidos y pares distintos; en \(\texttt{DIST}\), cota \(M\) dentro de \([0,\,N\!-\!2]\).
-  \[
-    \begin{aligned}
-      &\forall (A,B)\in \texttt{NEXT}:\ A,B\in S,\ A\ne B,\\
-      &\forall (A,B)\in \texttt{SEP}:\ A,B\in S,\ A\ne B,\\
-      &\forall (A,B,M)\in \texttt{DIST}:\ A,B\in S,\ A\ne B,\ 0\le M\le N-2.
-    \end{aligned}
-  \]
-
-  \item[\textbf{R7 — No contradicción \(\textsf{next}\) vs \(\textsf{sep}\):}] Se prohíbe declarar simultáneamente que dos personas deban y no deban estar juntas.
-  \[
-    \forall (A,B)\in \texttt{NEXT},\ \forall (C,D)\in \texttt{SEP}:\ (A,B)\not\in\{(C,D),(D,C)\}.
-  \]
-
-  \item[\textbf{R8 — Implicación local:}] \(\textsf{distance}(A,B,0)\) es equivalente a \(\textsf{next}(A,B)\).
-  \[
-    \forall (A,B,0)\in \texttt{DIST}:\quad \big|\,POS\_OF_A - POS\_OF_B\,\big| = 1.
-  \]
+  \item[\textbf{R5 — Refuerzo de permutación:}] Duplican la biección y aceleran la propagación. \(\textit{all\_different}\big([POS\_OF_p\mid p\in S]\big),\ \textit{all\_different}\big([PER\_AT_i\mid i\in POS]\big),\ \sum_{p\in S} POS\_OF_p\ =\ \frac{N(N+1)}{2}.\)
+  \item[\textbf{R6 — Validación de datos:}] Índices válidos y pares distintos; en \(\texttt{DIST}\), cota \(M\) dentro de \([0,\,N\!-\!2]\). \(\forall (A,B)\in \texttt{NEXT}:\ A,B\in S,\ A\ne B;\ \forall (A,B)\in \texttt{SEP}:\ A,B\in S,\ A\ne B;\ \forall (A,B,M)\in \texttt{DIST}:\ A,B\in S,\ A\ne B,\ 0\le M\le N-2.\)
+  \item[\textbf{R7 — No contradicción \(\textsf{next}\) vs \(\textsf{sep}\):}] Se prohíbe declarar simultáneamente que dos personas deban y no deban estar juntas. \(\forall (A,B)\in \texttt{NEXT},\ \forall (C,D)\in \texttt{SEP}:\ (A,B)\not\in\{(C,D),(D,C)\}.\)
+  \item[\textbf{R8 — Implicación local:}] \(\textsf{distance}(A,B,0)\) es equivalente a \(\textsf{next}(A,B)\). \(\forall (A,B,0)\in \texttt{DIST}:\ \big|\,POS\_OF_A - POS\_OF_B\,\big| = 1.\)
 \end{description}
-
 \subsubsection*{Restricciones de simetrías}
-
 \begin{description}
-  \item[\textbf{R9 — Rompimiento de simetría izquierda–derecha:}] La solución reflejada (espejada) es equivalente; para evitar exploración duplicada, se fija un orden canónico en los extremos.
-  \[
-    PER\_AT_1 \ <\ PER\_AT_N.
-  \]
-  \emph{Justificación:} si \([p_1,\dots,p_N]\) es solución, entonces \([p_N,\dots,p_1]\) también suele serlo cuando las preferencias dependen sólo de distancias absolutas. Forzar \(PER\_AT_1<PER\_AT_N\) descarta exactamente una de las dos, reduciendo el espacio de búsqueda sin eliminar soluciones no simétricas.
+  \item[\textbf{R9 — Rompimiento de simetría izquierda–derecha:}] Las soluciones reflejadas son equivalentes; para evitar duplicados, se fija \(PER\_AT_1<PER\_AT_N.\)
 \end{description}
+
+
 
