@@ -49,34 +49,36 @@ constraint
 
 % ----------------------- Redundantes ----------------
 % --- Redundantes por FILAS ---
-constraint
-  forall(r in S)(
-    sum(c in S)(X[r,c]) = 45
-  );
+% constraint
+%   forall(r in S)(
+%     sum(c in S)(X[r,c]) = 45
+%   );
 
-% --- Redundantes por COLUMNAS ---
-constraint
-  forall(c in S)(
-    sum(r in S)(X[r,c]) = 45
-  );
+% % --- Redundantes por COLUMNAS ---
+% constraint
+%   forall(c in S)(
+%     sum(r in S)(X[r,c]) = 45
+%   );
 
-% --- Redundantes por CAJAS 3x3 ---
-constraint
-  forall(br in 0..2, bc in 0..2)(
-    sum(i in 1..3, j in 1..3)( X[3*br + i, 3*bc + j] ) = 45
-  );
+% % --- Redundantes por CAJAS 3x3 ---
+% constraint
+%   forall(br in 0..2, bc in 0..2)(
+%     sum(i in 1..3, j in 1..3)( X[3*br + i, 3*bc + j] ) = 45
+%   );
 
 % ----------------------- Búsqueda -------------------------------
 % Ramificar solo sobre celdas vacías (las pistas ya están fijas)
 array[int] of var DIG: BRANCH_VARS = [ X[r,c] | r in S, c in S where G[r,c] = 0 ];
 
 % ----------------------- Búsqueda -------------------------------
-% Sin estrategia fija: usar la búsqueda por defecto del solver
-solve satisfy;
+% [H1] Heurística 1 — clásica y estable
+% solve :: int_search(BRANCH_VARS, first_fail, indomain_min, complete) satisfy;
 
-% solve :: int_search(POS_OF, first_fail, indomain_min, complete) satisfy;
-% solve :: int_search(POS_OF, dom_w_deg,  indomain_split, complete) satisfy;
-% solve :: int_search(POS_OF, input_order, indomain_min, complete) satisfy;
+% [H2] Heurística 2 — informada por conflictos
+% solve :: int_search(BRANCH_VARS, dom_w_deg, indomain_split, complete) satisfy;
+
+% [D] Default del solver (sin anotación)
+solve satisfy;
 
 % ----------------------- Salida --------------------------------
 output

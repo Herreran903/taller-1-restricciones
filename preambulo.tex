@@ -1,18 +1,48 @@
+% --- Codificación y tipografías ---
 \usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
+\usepackage[utf8]{inputenc}      % (si compilas con pdfLaTeX; con LuaLaTeX/XeLaTeX no hace falta)
 \usepackage[spanish,es-tabla]{babel}
 \usepackage{lmodern}
 \usepackage{microtype}
+
+% --- Gráficos ---
 \usepackage{graphicx}
+\graphicspath{{figuras/}{figs/}}
+
+% --- Matemáticas y tablas ---
+\usepackage{amsmath,amssymb}
 \usepackage{booktabs}
-\usepackage{amsmath, amssymb}
 \usepackage{siunitx}
+\sisetup{
+  detect-all,
+  output-decimal-marker = {.},   % separador decimal en español: coma o punto (ajusta si prefieres coma)
+  group-separator = {\,},
+  group-minimum-digits = 4
+}
+
+% --- Flotantes (tablas/figuras) ---
+\usepackage{float}                        % para [H]
+\usepackage[font=small,labelfont=bf,skip=6pt]{caption}
+\usepackage[section]{placeins}            % \FloatBarrier automático al cambiar de sección
+
+% Entorno opcional para compactar espacio alrededor de floats
+\newenvironment{compactfloats}{%
+  \begingroup
+  \setlength{\textfloatsep}{6pt plus 2pt minus 2pt}%
+  \setlength{\floatsep}{6pt plus 2pt minus 2pt}%
+  \setlength{\intextsep}{6pt plus 2pt minus 2pt}%
+  \captionsetup{skip=3pt}%
+  \renewcommand{\arraystretch}{0.9}%
+  \setlength{\tabcolsep}{2pt}%
+}{%
+  \endgroup
+}
+
+% --- Bibliografía ---
 \usepackage[numbers]{natbib}
+
+% --- Enlaces y referencias cruzadas ---
 \usepackage{hyperref}
-\usepackage{cleveref}
-
-\graphicspath{{figuras/}}
-
 \hypersetup{
   colorlinks=true,
   linkcolor=black,
@@ -21,6 +51,17 @@
   pdfauthor={Equipo Taller 1},
   pdftitle={Taller 1}
 }
+\usepackage[nameinlink]{cleveref}
 
+% Nombres en español para cleveref
+\crefname{figure}{figura}{figuras}
+\Crefname{figure}{Figura}{Figuras}
+\crefname{table}{tabla}{tablas}
+\Crefname{table}{Tabla}{Tablas}
+\crefname{section}{sección}{secciones}
+\Crefname{section}{Sección}{Secciones}
+
+% Aliases útiles
 \newcommand{\figref}[1]{\Cref{#1}}
 \newcommand{\secref}[1]{\Cref{#1}}
+\newcommand{\tabref}[1]{\Cref{#1}}

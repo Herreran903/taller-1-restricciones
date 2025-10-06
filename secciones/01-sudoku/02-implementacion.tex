@@ -1,43 +1,12 @@
 % !TEX root = ../../main.tex
 
-\subsection{Implementación}\label{sec:implementacion}
-
-\subsubsection*{Archivos y organización}
-\begin{itemize}
-  \item \texttt{sudoku.mzn}: modelo completo.
-  \item \texttt{tests/*.dzn}: instancias con la matriz \(G\) (0 = vacío).
-\end{itemize}
+\subsection{Implementación}\label{sec:01-sudoku-implementacion}
 
 \subsubsection*{Modelo}
-Se construye el conjunto de ramificación \(\mathcal{B}=\{\,X_{r,c}\mid G_{r,c}=0\,\}\) para explorar únicamente celdas no fijadas por las pistas. Esta elección evita trabajo inútil sobre variables ya determinadas, concentra la búsqueda en la parte incierta del tablero y reduce el árbol sin alterar la corrección: toda solución factible coincide con \(G\) y difiere únicamente en \(\mathcal{B}\).
+Definimos el conjunto de ramificación \(\mathcal{B}=\{X_{r,c}\mid G_{r,c}=0\}\) y sólo exploramos celdas sin pista. Así evitamos ramificar en valores ya fijados por \(G\) y concentramos la búsqueda donde hay incertidumbre, reduciendo el árbol sin afectar la corrección (toda solución coincide con \(G\) y difiere sólo en \(\mathcal{B}\)).
 
 \subsubsection*{Restricciones redundantes}
-Se activan de manera permanente porque fortalecen la propagación sin alterar el conjunto de soluciones. En primer lugar, la \emph{suma por fila} fija que cada fila contiene los dígitos \(1..9\) sin repetición, por lo que su suma es \(45\); esto aporta poda lineal cuando faltan pocas celdas:
-\[
-\forall r \in S:\quad \sum_{c \in S} X_{r,c} = 45.
-\]
-
-En segundo lugar, la \emph{suma por columna} refuerza la propagación vertical con el mismo argumento:
-\[
-\forall c \in S:\quad \sum_{r \in S} X_{r,c} = 45.
-\]
-
-Por último, la \emph{suma por caja \(3\times3\)} impone el mismo invariante en cada subcuadrícula, útil para cerrar cajas cuando restan pocos valores:
-\[
-\forall\, b_r,b_c \in \{0,1,2\}:\quad
-\sum_{i=1}^{3}\sum_{j=1}^{3} X_{\,3b_r+i,\;3b_c+j} = 45.
-\]
-
-Estas igualdades son lógicamente redundantes, pero adelantan la detección de inconsistencias locales (por ejemplo, sumas parciales que ya exceden \(45\) o que no pueden alcanzarlo con los dominios restantes), reduciendo nodos y fallos sin excluir ninguna solución válida.
+Usamos las sumas \(=45\) (véase R5–R7 en \S\ref{sec:01-sudoku-modelo}) como poda adicional: no alteran el conjunto de soluciones y aceleran la detección de inconsistencias locales (p. ej., parciales que superan 45 o no alcanzables con los dominios), reduciendo \emph{nodos/fallos}.
 
 \subsubsection*{Ruptura de simetría}
-Con \emph{pistas fijas} las simetrías clásicas del Sudoku (permutaciones de filas/columnas/bandas, renombrado de dígitos, transposición) no preservan la instancia, pues desplazarían las pistas. Por ello no imponemos ruptura de simetría global: podría eliminar la única solución compatible con \(G\). La instancia ya está “anclada” por las pistas y cualquier rompedor global sería potencialmente incorrecto.
-
-\subsubsection*{Estrategias de búsqueda}
-Para las pruebas sobre el modelo de Reunion se plantean diferentes combi-
-naciones de heurísticas, con el objetivo de analizar su impacto en el tamaño
-del árbol de búsqueda y el tiempo de resolución.
-
-\subsubsection*{Solvers}
-Se utilizarán los \emph{solvers} XXX, YYY y ZZZ para contrastar el comportamiento del modelo bajo motores de propagación diferentes. El objetivo es observar variaciones en tiempo y tamaño del árbol manteniendo la misma formulación.
-
+No imponemos rompedores globales: con pistas, las simetrías clásicas (permutar filas/columnas/bandas, renombrar dígitos, transponer) ya no preservan la instancia porque moverían \(G\). Forzar simetrías podría eliminar la única solución compatible.

@@ -1,0 +1,74 @@
+% !TEX root = ../../main.tex
+
+\subsection{Pruebas}\label{sec:01-sudoku-pruebas}
+\begin{compactfloats}
+\begin{table}[H]
+  \centering
+  \small
+  \setlength{\tabcolsep}{2.8pt}
+  \caption{Resultados de pruebas \textbf{con} restricciones redundantes.}
+  \label{tab:pruebas-sudoku-on}
+  \begin{tabular}{l l l l r r r r}
+    \toprule
+    \textbf{Archivo} & \textbf{Solver} & \textbf{Var heur} & \textbf{Val heur} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} \\
+    \midrule
+    test\_01 & Chuffed & first\_fail  & indomain\_min   & 4.000e-03 & 5   & 3   & 2 \\
+    test\_01 & Chuffed & dom\_w\_deg  & indomain\_split & 1.000e-03 & 7   & 4   & 3 \\
+    test\_01 & Chuffed & ---          & ---              & 1.000e-03 & 8   & 6   & 2 \\
+    test\_01 & Gecode  & first\_fail  & indomain\_min   & 8.044e-03 & 61  & 28  & 7 \\
+    test\_01 & Gecode  & dom\_w\_deg  & indomain\_split & 2.857e-03 & 43  & 20  & 8 \\
+    test\_01 & Gecode  & ---          & ---              & 1.022e-03 & 32  & 14  & 7 \\
+    \midrule
+    test\_02 & Chuffed & first\_fail  & indomain\_min   & 1.200e-02 & 418 & 367 & 13 \\
+    test\_02 & Chuffed & dom\_w\_deg  & indomain\_split & 1.300e-02 & 550 & 496 & 14 \\
+    test\_02 & Chuffed & ---          & ---              & 5.000e-03 & 170 & 157 & 8 \\
+    test\_02 & Gecode  & first\_fail  & indomain\_min   & 1.733e-02 & 1964 & 979 & 17 \\
+    test\_02 & Gecode  & dom\_w\_deg  & indomain\_split & 6.567e-03 & 703  & 349 & 21 \\
+    test\_02 & Gecode  & ---          & ---              & 6.834e-04 & 6    & 1   & 4 \\
+    \midrule
+    test\_03 & Chuffed & first\_fail  & indomain\_min   & 2.000e-03 & 28  & 22  & 6 \\
+    test\_03 & Chuffed & dom\_w\_deg  & indomain\_split & 7.000e-03 & 337 & 324 & 9 \\
+    test\_03 & Chuffed & ---          & ---              & 4.000e-03 & 172 & 160 & 7 \\
+    test\_03 & Gecode  & first\_fail  & indomain\_min   & 1.157e-02 & 727 & 360 & 11 \\
+    test\_03 & Gecode  & dom\_w\_deg  & indomain\_split & 4.690e-03 & 218 & 107 & 11 \\
+    test\_03 & Gecode  & ---          & ---              & 3.631e-03 & 305 & 149 & 11 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \small
+  \setlength{\tabcolsep}{2.8pt}
+  \caption{Resultados de pruebas \textbf{sin} restricciones redundantes.}
+  \label{tab:pruebas-sudoku-off}
+  \begin{tabular}{l l l l r r r r}
+    \toprule
+    \textbf{Archivo} & \textbf{Solver} & \textbf{Var heur} & \textbf{Val heur} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} \\
+    \midrule
+    test\_01 & Chuffed & first\_fail  & indomain\_min   & 2.000e-03 & 5   & 3   & 2 \\
+    test\_01 & Chuffed & dom\_w\_deg  & indomain\_split & 1.000e-03 & 7   & 4   & 3 \\
+    test\_01 & Chuffed & ---          & ---              & 1.000e-03 & 8   & 6   & 2 \\
+    test\_01 & Gecode  & first\_fail  & indomain\_min   & 8.472e-03 & 61  & 28  & 7 \\
+    test\_01 & Gecode  & dom\_w\_deg  & indomain\_split & 2.133e-03 & 41  & 19  & 7 \\
+    test\_01 & Gecode  & ---          & ---              & 7.576e-04 & 32  & 14  & 6 \\
+    \midrule
+    test\_02 & Chuffed & first\_fail  & indomain\_min   & 9.000e-03 & 417 & 369 & 13 \\
+    test\_02 & Chuffed & dom\_w\_deg  & indomain\_split & 9.000e-03 & 498 & 459 & 14 \\
+    test\_02 & Chuffed & ---          & ---              & 3.000e-03 & 147 & 131 & 8 \\
+    test\_02 & Gecode  & first\_fail  & indomain\_min   & 1.318e-02 & 1964 & 979 & 17 \\
+    test\_02 & Gecode  & dom\_w\_deg  & indomain\_split & 3.817e-03 & 457  & 226 & 18 \\
+    test\_02 & Gecode  & ---          & ---              & 5.463e-04 & 6    & 1   & 4 \\
+    \midrule
+    test\_03 & Chuffed & first\_fail  & indomain\_min   & 2.000e-03 & 28  & 22  & 6 \\
+    test\_03 & Chuffed & dom\_w\_deg  & indomain\_split & 7.000e-03 & 338 & 324 & 9 \\
+    test\_03 & Chuffed & ---          & ---              & 4.000e-03 & 210 & 198 & 6 \\
+    test\_03 & Gecode  & first\_fail  & indomain\_min   & 6.176e-03 & 727 & 360 & 11 \\
+    test\_03 & Gecode  & dom\_w\_deg  & indomain\_split & 2.267e-03 & 151 & 72  & 11 \\
+    test\_03 & Gecode  & ---          & ---              & 2.946e-03 & 297 & 145 & 12 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\end{compactfloats}
+
+\FloatBarrier
