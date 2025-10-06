@@ -1,16 +1,39 @@
-# ===================== MiniZinc =====================
-# Mantener fuentes
-!*.mzn
-!*.dzn
-!*.mzx       # si usas bibliotecas empaquetadas propias
+# ===================== LaTeX =====================
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.brf
+*.dvi
+*.fdb_latexmk
+*.fls
+*.glg
+*.glo
+*.gls
+*.ist
+*.log
+*.lox
+*.lot
+*.lof
+*.lol
+*.nav
+*.out
+*.pdf        # quita esta línea si QUIERES versionar los PDF finales
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+*.xmpi
 
-# Artefactos de compilación/flatten
-*.fzn        # FlatZinc generado
-*.ozn        # script de impresión generado
+# ===================== MiniZinc =====================
+# Mantener fuentes (.mzn/.dzn); ignorar artefactos
+*.fzn
+*.ozn
 *.mzn.tmp
 *.dzn.tmp
 
-# Salidas/estadísticas de corridas (ajusta según lo que guardes)
+# Salidas/estadísticas
 *.stat
 *.stats.json
 *.jsonl
@@ -18,32 +41,42 @@
 *.trace
 *.dtrace
 *.res
-*.out        # cuidado: ya ignoras .out de LaTeX; útil también para runs
-*.err
-*.log        # ya ignorado por LaTeX
+# (ya ignoramos *.out arriba)
 
-# Directorios para resultados (si los usas)
+# Directorios de resultados
 runs/
 out/
 outputs/
 results/
 
-# Visualizador de búsqueda (Gist) – ignora trazas crudas, NO las figuras finales
+# Visualizador / trazas crudas (no las figuras finales del informe)
 gist/
 *.search.json
 *.gv
-# (si exportas PNG/SVG para el informe, guárdalas en figs/ y no las ignores)
 
-# ===================== IDE / Editor =====================
-# MiniZinc IDE / VSCode / JetBrains
-.mzn-workspace/
-.mzn-cache/
-.minizinc/
+# ===================== Python (si corresponde) =====================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+
+# ===================== VSCode / IDE =====================
 .vscode/
 .idea/
 
 # ===================== SO =====================
-# macOS
 .DS_Store
-# Windows
 Thumbs.db
+
+# ===================== Figuras del informe =====================
+# Mantén PNG/SVG/PDF en carpetas de figuras del paper:
+# (descomenta si quieres ignorar todo y luego permitir solo 'figs/')
+# *.png
+# *.jpg
+# *.jpeg
+# *.svg
+# !figs/**
+# !figuras/**
