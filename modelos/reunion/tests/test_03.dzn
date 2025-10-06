@@ -1,9 +1,21 @@
 % Varias next encadenadas
-N = 7;
-personas = ["Ana","Bruno","Carla","Diego","Elena","Fabio","Gina"];
-K_NEXT = 2;
-K_SEP  = 1;
-K_DIST = 1;
-NEXT = array2d(1..K_NEXT, 1..2, [ 2,3,  5,6 ]);     % Bruno~Carla, Elena~Fabio
-SEP  = array2d(1..K_SEP,  1..2, [ 1,7 ]);          % Ana no junto a Gina
-DIST = array2d(1..K_DIST, 1..3, [ 4,7,3 ]);        % Diego y Gina a lo sumo 3 personas entre medio
+N = 10;
+personas = ["Ana","Ben","Cata","Diego","Eva","Fede","Gabo","Hilda","Ivo","Julia"];
+K_NEXT = 3;
+K_SEP  = 2;
+K_DIST = 4;
+NEXT = array2d(1..K_NEXT, 1..2, [
+  1, 2,    % next(Ana,Ben)
+  3, 4,    % next(Cata,Diego)
+  5, 6     % next(Eva,Fede)
+]);
+SEP  = array2d(1..K_SEP,  1..2, [
+  7, 8,    % separate(Gabo,Hilda)
+  9, 10    % separate(Ivo,Julia)
+]);
+DIST = array2d(1..K_DIST, 1..3, [
+  2, 3, 1, % distance(Ben,Cata,1)
+  4, 5, 1, % distance(Diego,Eva,1)
+  1, 5, 3, % distance(Ana,Eva,3)
+  8, 9, 2  % distance(Hilda,Ivo,2)
+]);

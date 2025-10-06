@@ -1,9 +1,0 @@
-% Distancias más apretadas
-N = 9;
-personas = ["Ana","Bruno","Carla","Diego","Elena","Fabio","Gina","Hugo","Irene"];
-K_NEXT = 2;
-K_SEP  = 1;
-K_DIST = 3;
-NEXT = array2d(1..K_NEXT, 1..2, [ 1,5,  8,9 ]);    % Ana~Elena, Hugo~Irene
-SEP  = array2d(1..K_SEP,  1..2, [ 2,3 ]);         % Bruno !~ Carla
-DIST = array2d(1..K_DIST, 1..3, [ 4,6,1,  2,7,2,  3,9,3 ]); % Diego-Elena<=1, Bruno-Gina<=2, Carla-Irene<=3

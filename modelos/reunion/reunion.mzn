@@ -102,12 +102,14 @@ constraint
 constraint PER_AT[1] < PER_AT[N];
 
 % ----------------------- Búsqueda -------------------------------
-% Sin estrategia fija: usar la búsqueda por defecto del solver
-solve satisfy;
-
+% [H1] Heurística 1 — clásica y estable
 % solve :: int_search(POS_OF, first_fail, indomain_min, complete) satisfy;
-% solve :: int_search(POS_OF, dom_w_deg,  indomain_split, complete) satisfy;
-% solve :: int_search(POS_OF, input_order, indomain_min, complete) satisfy;
+
+% [H2] Heurística 2 — informada por conflictos
+% solve :: int_search(POS_OF, dom_w_deg, indomain_split, complete) satisfy;
+
+% [D] Default del solver (sin anotación)
+solve satisfy;
 
 % ----------------------- Salida --------------------------------
 output
