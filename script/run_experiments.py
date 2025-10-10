@@ -1,25 +1,53 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-import argparse, subprocess, tempfile, re, csv, os, sys, glob, shutil, math
+"""
+Runner de experimentos MiniZinc (model-aware)
+---------------------------------------------
+
+- Inyecta una lista de variables de decisión según el tipo de modelo (Sudoku / Reunión),
+  y sustituye la línea 'solve ... satisfy;' por una de tres estrategias de búsqueda
+  claramente diferenciadas para análisis comparativo:
+    1) ff_min       -> first_fail + indomain_min     (completa)
+    2) wdeg_split   -> dom_w_deg   + indomain_split  (completa)
+    3) inorder_min  -> input_order + indomain_min    (completa)
+
+- Compila a FlatZinc y ejecuta con estadísticas.
+- Guarda un CSV de resultados y, opcionalmente, una "shortlist" de corridas interesantes.
+- Comentarios normalizados en español y limpieza de temporales.
+
+Notas:
+* Se evita referenciar símbolos inexistentes (p. ej., G) en la inyección.
+* Si la compilación o ejecución con la estrategia falla por identificadores indefinidos,
+  se reintenta con el modelo original (sin inyección de solve).
+"""
+
+import argparse
+import subprocess
+import tempfile
+import re
+import csv
+import os
+import sys
+import glob
+import shutil
+import math
 from datetime import datetime
 from collections import defaultdict
 
 # ==============================================================
-# Inyección de estrategia de búsqueda (model-aware)
+# Detección y manipulación del modelo
 # ==============================================================
 
-# Regex para localizar la primera línea 'solve ... satisfy;'
+# Localiza la primera línea 'solve ... satisfy;'
 SOLVE_REGEX = re.compile(
     r"(?m)^[ \t]*(?!%)[ \t]*solve\s*(::[^\n]*)?\s*satisfy\s*;",
     re.IGNORECASE
 )
 
-# (Opcional) Etiqueta explícita de modelo en la cabecera:
+# Etiqueta explícita en cabecera (opcional):
 #   % MODEL_ID: sudoku
 #   % MODEL_ID: reunion
 MODEL_ID_RE = re.compile(r"^\s*%+\s*MODEL_ID:\s*(\w+)", re.IGNORECASE | re.MULTILINE)
 
-# Heurísticas para detectar tipo de modelo cuando no hay etiqueta
+# Heurísticas para detectar tipo de modelo
 HINTS = {
     "sudoku": {
         "must": [re.compile(r"\barray\s*\[\s*S\s*,\s*S\s*\]\s*of\s*var\b.*:\s*X\b", re.DOTALL)],
@@ -34,12 +62,12 @@ HINTS = {
     },
 }
 
-# ¿El modelo ya define una lista de branching?
+# Señales de lista de branching ya definida
 HAS_DECISION = re.compile(r"\bDECISION_VARS\b")
 HAS_BRANCH   = re.compile(r"\bBRANCH_VARS\b")
 
 def detect_model_kind(model_text: str) -> str:
-    """Detecta el tipo de modelo (sudoku|reunion|unknown) por etiqueta o heurística."""
+    """Devuelve 'sudoku' | 'reunion' | 'unknown' según etiqueta o heurística."""
     m = MODEL_ID_RE.search(model_text)
     if m:
         tag = m.group(1).strip().lower()
@@ -51,75 +79,92 @@ def detect_model_kind(model_text: str) -> str:
     return "unknown"
 
 def pick_existing_branch_name(model_text: str) -> str | None:
-    """Devuelve el nombre de la lista de branching si ya existe en el modelo."""
+    """Si el modelo define una lista de branching conocida, devuelve su nombre."""
     if HAS_DECISION.search(model_text): return "DECISION_VARS"
     if HAS_BRANCH.search(model_text):   return "BRANCH_VARS"
     return None
 
 def ensure_branch_vars(model_text: str, kind: str) -> tuple[str, str | None]:
     """
-    Asegura una lista 1D con variables de ramificación.
+    Garantiza una lista 1D de variables de ramificación:
     - Reusa DECISION_VARS/BRANCH_VARS si existen.
-    - Para 'sudoku' evita depender de S/DIG: usa index_set_1_of_2/2_of_2 y 'var int'.
-    - Inserta justo antes del 'solve'.
+    - Para Sudoku, detecta si G está declarado y filtra por G[r,c]==0 sólo si existe.
+    - Inserta justo antes de la primera línea 'solve'.
+    - Si no puede, devuelve (texto_original, None).
     """
     name = pick_existing_branch_name(model_text)
     if name:
         return model_text, name
 
+    m = SOLVE_REGEX.search(model_text)
+    if not m:
+        return model_text, None
+
     if kind == "sudoku":
-        # Robustez: no asumimos S ni DIG; opcionalmente filtramos por G[r,c]==0 si G existe.
-        snippet = (
-            "% === Injected by runner: DECISION_VARS (Sudoku) ===\n"
-            "array[int] of var int: DECISION_VARS =\n"
-            "  [ X[r,c] |\n"
-            "    r in index_set_1_of_2(X),\n"
-            "    c in index_set_2_of_2(X)\n"
-            "    where (if exists(index_set_1_of_2(G)) then G[r,c] = 0 else true endif)\n"
-            "  ];\n"
-        )
+        has_G = bool(re.search(r"^\s*(?:array\s*\[.*\]\s*of\s*)?int\s*:\s*G\b", model_text, re.MULTILINE))
+        if has_G:
+            snippet = (
+                "% === Inyectado por runner: DECISION_VARS (Sudoku, con G) ===\n"
+                "array[int] of var int: DECISION_VARS =\n"
+                "  [ X[r,c] |\n"
+                "    r in index_set_1_of_2(X),\n"
+                "    c in index_set_2_of_2(X)\n"
+                "    where G[r,c] = 0\n"
+                "  ];\n"
+            )
+        else:
+            snippet = (
+                "% === Inyectado por runner: DECISION_VARS (Sudoku) ===\n"
+                "array[int] of var int: DECISION_VARS =\n"
+                "  [ X[r,c] |\n"
+                "    r in index_set_1_of_2(X),\n"
+                "    c in index_set_2_of_2(X)\n"
+                "  ];\n"
+            )
         name = "DECISION_VARS"
 
     elif kind == "reunion":
         snippet = (
-            "% === Injected by runner: DECISION_VARS (Reunión) ===\n"
+            "% === Inyectado por runner: DECISION_VARS (Reunión) ===\n"
             "array[int] of var int: DECISION_VARS = [ POS_OF[p] | p in S ];\n"
         )
         name = "DECISION_VARS"
 
     else:
-        # Desconocido: no sabemos extraer decisiones de forma segura
-        return model_text, None
-
-    m = SOLVE_REGEX.search(model_text)
-    if not m:
         return model_text, None
 
     i = m.start()
     patched = model_text[:i] + snippet + model_text[i:]
     return patched, name
 
-# ---- Plantillas de 'solve' separadas por modelo ----
-# Clave especial "default": None => no reemplaza el 'solve' del modelo
+# ==============================================================
+# Estrategias de búsqueda
+# ==============================================================
+
+# Tres estrategias diferenciadas (sin 'default'):
+# - ff_min      : first_fail (var) + indomain_min (val)     — prioriza variables más restringidas; valores bajos.
+# - wdeg_split  : dom_w_deg  (var) + indomain_split (val)   — pondera conflictos; divide dominios (branching binario).
+# - inorder_min : input_order (var) + indomain_min (val)    — respeta el orden de declaración; útil si el modelo está “bien ordenado”.
+
 SOLVE_TEMPLATES_BY_MODEL = {
     "sudoku": {
-        "ff_min":     "solve :: int_search({VARS}, first_fail,  indomain_min,   complete) satisfy;",
-        "wdeg_split": "solve :: int_search({VARS}, dom_w_deg,   indomain_split, complete) satisfy;",
-        "default":    None,
+        "ff_min":      "solve :: int_search({VARS}, first_fail,   indomain_min,   complete) satisfy;",
+        "wdeg_split":  "solve :: int_search({VARS}, dom_w_deg,    indomain_split, complete) satisfy;",
+        "inorder_min": "solve :: int_search({VARS}, input_order,  indomain_min,   complete) satisfy;",
     },
     "reunion": {
-        "ff_min":     "solve :: int_search({VARS}, first_fail,  indomain_min,   complete) satisfy;",
-        "wdeg_split": "solve :: int_search({VARS}, dom_w_deg,   indomain_split, complete) satisfy;",
-        "default":    None,
+        "ff_min":      "solve :: int_search({VARS}, first_fail,   indomain_min,   complete) satisfy;",
+        "wdeg_split":  "solve :: int_search({VARS}, dom_w_deg,    indomain_split, complete) satisfy;",
+        "inorder_min": "solve :: int_search({VARS}, input_order,  indomain_min,   complete) satisfy;",
     },
     "unknown": {
-        "ff_min":     "solve :: int_search({VARS}, first_fail,  indomain_min,   complete) satisfy;",
-        "wdeg_split": "solve :: int_search({VARS}, dom_w_deg,   indomain_split, complete) satisfy;",
-        "default":    None,
+        "ff_min":      "solve :: int_search({VARS}, first_fail,   indomain_min,   complete) satisfy;",
+        "wdeg_split":  "solve :: int_search({VARS}, dom_w_deg,    indomain_split, complete) satisfy;",
+        "inorder_min": "solve :: int_search({VARS}, input_order,  indomain_min,   complete) satisfy;",
     },
 }
 
-# Aliases aceptados para compatibilidad (p. ej., si venías usando 'domdeg_split')
+# Alias de compatibilidad
 STRAT_ALIASES = {
     "domdeg_split": "wdeg_split",
 }
@@ -130,34 +175,28 @@ def normalize_strategy_name(s: str) -> str:
 
 def inject_solve_by_kind(model_text: str, strategy: str, kind: str) -> str:
     """
-    Prepara el modelo para la estrategia pedida, detectando tipo de problema y
-    garantizando la lista de branching apropiada. Si no puede, cae a 'solve satisfy;'.
+    Sustituye la línea 'solve ... satisfy;' según la estrategia pedida.
+    - Asegura DECISION_VARS según el tipo de modelo.
+    - Si no puede asegurar variables de ramificación, devuelve el texto original.
     """
     strategy = normalize_strategy_name(strategy)
     templates = SOLVE_TEMPLATES_BY_MODEL.get(kind, SOLVE_TEMPLATES_BY_MODEL["unknown"])
     if strategy not in templates:
-        # estrategia desconocida -> no tocar el solve
         return model_text
 
-    tmpl = templates[strategy]
-    if tmpl is None:
-        # 'default': no tocar el solve del modelo
-        return model_text
-
-    # Asegurar la lista de branching apropiada para el modelo
+    # Asegurar la lista de branching
     txt, varname = ensure_branch_vars(model_text, kind)
     if varname is None:
-        # No sabemos con qué ramificar -> reemplazamos con solve satisfy;
-        return SOLVE_REGEX.sub("solve satisfy;", model_text, count=1)
+        return model_text
 
     if not SOLVE_REGEX.search(txt):
-        raise RuntimeError("Could not find a 'solve ... satisfy;' line to replace.")
+        return model_text
 
-    solve_line = tmpl.format(VARS=varname)
+    solve_line = templates[strategy].format(VARS=varname)
     return SOLVE_REGEX.sub(solve_line, txt, count=1)
 
 # ==============================================================
-# Utilidades varias (estadísticas, selección, tablas)
+# Utilidades de estadísticas y selección
 # ==============================================================
 
 def format_time_sci(t, digits=3):
@@ -167,8 +206,8 @@ def format_time_sci(t, digits=3):
 
 def parse_stats(mzn_text: str):
     """
-    Lee líneas '%%%mzn-stat:' y '%%%mzn-status' desde stdout+stderr combinados.
-    Devuelve dict con casts básicos.
+    Extrae '%%%mzn-stat:' y '%%%mzn-status' de stdout+stderr.
+    Devuelve dict con casts básicos y compatibilidad 'fail' -> 'failures'.
     """
     stats = {}
     for line in mzn_text.splitlines():
@@ -180,7 +219,6 @@ def parse_stats(mzn_text: str):
             else:
                 stats["status"] = kv.strip()
 
-    # Casts
     def cast_float(k):
         if k in stats:
             try:
@@ -197,17 +235,17 @@ def parse_stats(mzn_text: str):
 
     for k in ["time", "initTime", "solveTime"]:
         cast_float(k)
-    for k in ["nodes", "failures", "solutions", "restarts", "peakDepth", "variables", "constraints"]:
+    for k in ["nodes", "failures", "solutions", "restarts", "peakDepth", "variables", "constraints", "fail"]:
         cast_int(k)
+    if "failures" not in stats and "fail" in stats:
+        stats["failures"] = stats["fail"]
 
     return stats
 
 def compute_total_time(stats):
     """
     Normaliza el tiempo total:
-    - Si 'time' existe, usarlo.
-    - Si no, usar initTime + solveTime si existen.
-    - Si nada existe, None.
+    - Usa 'time' si existe; si no, 'initTime' + 'solveTime'; si no, None.
     """
     t = stats.get("time")
     if isinstance(t, (int, float)):
@@ -219,6 +257,7 @@ def compute_total_time(stats):
     return None
 
 def pareto_min(rows, keys):
+    """Índices de la frontera de Pareto minimizando en 'keys'."""
     idxs = []
     for i, ri in enumerate(rows):
         if any(ri.get(k) is None for k in keys):
@@ -239,6 +278,7 @@ def pareto_min(rows, keys):
     return idxs
 
 def iqr_fences(values, k=1.5):
+    """Cercas IQR (Tukey) para detectar outliers; devuelve (lo, hi) o (None, None)."""
     if len(values) < 4:
         return (None, None)
     vs = sorted(values)
@@ -256,6 +296,14 @@ def iqr_fences(values, k=1.5):
     return (q1 - k * iqr, q3 + k * iqr)
 
 def shortlist_from_rows(rows, topk=2, delta=1.5, iqr_k=1.5):
+    """
+    Construye shortlist por archivo:
+    - Mejores/peores tiempos
+    - Frontera de Pareto (time_raw, nodes, failures)
+    - Outliers por IQR en time_raw y nodes
+    - Gaps entre solvers para una misma estrategia
+    - Anomalías (rc != 0 o solutions != 1)
+    """
     by_file = defaultdict(list)
     for r in rows:
         by_file[r["file"]].append(r)
@@ -263,7 +311,6 @@ def shortlist_from_rows(rows, topk=2, delta=1.5, iqr_k=1.5):
     shortlisted = []
 
     for f, group in by_file.items():
-        # 1) extremos por instancia (best/worst time)
         g_time = [r for r in group if r.get("time_raw") is not None]
         if g_time:
             best = sorted(
@@ -281,12 +328,10 @@ def shortlist_from_rows(rows, topk=2, delta=1.5, iqr_k=1.5):
             for r in worst:
                 shortlisted.append((r, "worst-time"))
 
-        # 2) Frontera de Pareto en (time_raw, nodes, failures)
         idxs = pareto_min(group, keys=["time_raw", "nodes", "failures"])
         for i in idxs:
             shortlisted.append((group[i], "pareto-front"))
 
-        # 3) Outliers (IQR) en time_raw y nodes
         for metric in ["time_raw", "nodes"]:
             vals = [r[metric] for r in group if r.get(metric) is not None]
             lo, hi = iqr_fences(vals, k=iqr_k)
@@ -299,12 +344,10 @@ def shortlist_from_rows(rows, topk=2, delta=1.5, iqr_k=1.5):
                 if v < lo or v > hi:
                     shortlisted.append((r, f"outlier-{metric}"))
 
-        # 5) Anomalías: rc != 0 o solutions != 1
         for r in group:
             if (r.get("rc") not in (0, None)) or (r.get("solutions") not in (1, None)):
                 shortlisted.append((r, "anomaly"))
 
-        # 4) Desacuerdo entre solvers (misma estrategia)
         by_strat = defaultdict(list)
         for r in group:
             by_strat[r["strategy"]].append(r)
@@ -326,7 +369,7 @@ def shortlist_from_rows(rows, topk=2, delta=1.5, iqr_k=1.5):
                 nmax = max(g, key=lambda r: r.get("nodes", -1))
                 shortlisted.append((nmin, f"solver-gap-nodes({ratio(nodes):.2f}x)"))
 
-    # De-duplicar
+    # De-duplicación por (file, solver, strategy)
     seen = set()
     out_rows = []
     for r, reason in shortlisted:
@@ -340,6 +383,7 @@ def shortlist_from_rows(rows, topk=2, delta=1.5, iqr_k=1.5):
     return out_rows
 
 def emit_latex_table(rows, path, caption="Shortlist de corridas interesantes", label="tab:shortlist"):
+    """Emite tabla LaTeX compacta con la shortlist."""
     cols = ["file", "solver", "strategy", "reason", "time", "nodes", "failures", "peakDepth", "solutions", "status"]
     header = ["Archivo", "Solver", "Estrategia", "Motivo", "Tiempo (s)", "Nodes", "Failures", "Depth", "Sol.", "Status"]
     lines = []
@@ -354,7 +398,6 @@ def emit_latex_table(rows, path, caption="Shortlist de corridas interesantes", l
     lines.append("    \\hline")
     for r in rows:
         vals = [r.get(k, "") for k in cols]
-        # formateo de tiempo si viene en float
         try:
             if isinstance(vals[4], float):
                 vals[4] = f"{vals[4]:.3f}"
@@ -369,133 +412,201 @@ def emit_latex_table(rows, path, caption="Shortlist de corridas interesantes", l
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
+def audit_redundancy_in_fzn(fzn_path: str) -> dict:
+    """
+    Auditoría robusta del FlatZinc:
+      - allDiff_count: cuenta apariciones de all_different (_int) si se mantiene global.
+      - sumX_count: cuenta int_lin_eq con TODOS los coeficientes = 1 y TODAS las vars empezando por 'X'
+                    (X[r,c] aplanado típicamente como X_1_1, X_1_2, ...)
+      - rhs_examples: algunos RHS observados (pueden ser !=45 si hay pistas).
+    """
+    try:
+        with open(fzn_path, "r", encoding="utf-8", errors="ignore") as f:
+            txt = f.read()
+    except Exception:
+        return {"allDiff_count": None, "sumX_count": None, "redundancy_on": None, "rhs_examples": []}
+
+    # 1) all_different, permitiendo variantes
+    allDiff_count = len(re.findall(r'\ball[_ ]?different(?:_int)?\b', txt))
+
+    # 2) int_lin_eq([...coeffs...], [...vars...], RHS) – tolerante a multilínea
+    pat = re.compile(
+        r'constraint\s+int_lin_eq\s*\(\s*\[([^\]]*)\]\s*,\s*\[([^\]]*)\]\s*,\s*(-?\d+)\s*\)',
+        re.DOTALL
+    )
+
+    def _all_ones(coeffs_str: str) -> bool:
+        items = [c.strip() for c in coeffs_str.split(",") if c.strip()]
+        return bool(items) and all(c == "1" for c in items)
+
+    # Acepta variables que empiecen por 'X' y NO sean constantes (p.ej., X_1_1, X_2_3, X[1,2])
+    VAR_TOKEN = re.compile(r'^[A-Za-z_][A-Za-z0-9_\[\], ]*$')
+    def _all_X_vars(vars_str: str) -> bool:
+        items = [v.strip() for v in vars_str.split(",") if v.strip()]
+        if not items:
+            return False
+        # Cada item debe “parecer” un identificador/array-elem y empezar por 'X'
+        for v in items:
+            if not VAR_TOKEN.match(v):
+                return False
+            # extrae el nombre base antes de '[' o primer '_' (X, X_1_1, X[1,2], etc.)
+            base = v.split("[", 1)[0].split(",", 1)[0].split(" ", 1)[0].split("_", 1)[0]
+            if not base.startswith("X"):
+                return False
+        return True
+
+    sumX_count = 0
+    rhs_examples = []
+    for m in pat.finditer(txt):
+        coeffs_str, vars_str, rhs = m.group(1), m.group(2), m.group(3)
+        if _all_ones(coeffs_str) and _all_X_vars(vars_str):
+            sumX_count += 1
+            if len(rhs_examples) < 5:
+                rhs_examples.append(int(rhs))
+
+    # Heurística de decisión: si hay varias sumas sobre X, asumimos redundancia "ON".
+    # En un 9x9 completo lo normal sería ~27; con pistas y simplificaciones puede bajar.
+    redundancy_on = (sumX_count >= 5)
+
+    return {
+        "allDiff_count": allDiff_count,
+        "sumX_count": sumX_count,
+        "rhs_examples": rhs_examples,
+        "redundancy_on": redundancy_on,
+    }
+
 # ==============================================================
 # Main
 # ==============================================================
 
 def main():
-    ap = argparse.ArgumentParser()
-    # ÚNICO base para rutas de salida
-    ap.add_argument("--base-dir", required=True, help="Directorio base donde se guardará todo lo generado")
-    # Barrido
-    ap.add_argument("--model", required=True)
-    ap.add_argument("--data-dir", required=True)
-    ap.add_argument("--solver", nargs="+", default=["gecode", "chuffed"], help="Lista de solvers (e.g., gecode chuffed)")
-    # Tres estrategias por defecto (idénticas para ambos solvers)
-    ap.add_argument("--strategy", nargs="+", default=["ff_min", "wdeg_split", "default"],
-                    help="Estrategias: ff_min | wdeg_split (alias: domdeg_split) | default")
-    ap.add_argument("--time-limit", type=int, default=60000)
-    # Rutas (relativas a base-dir por defecto)
-    ap.add_argument("--out", default="results/results.csv")
-    # Selección
-    ap.add_argument("--shortlist", action="store_true", default=True, help="(on) generar shortlist")
-    ap.add_argument("--shortlist-out", default="results/shortlist.csv")
-    ap.add_argument("--topk", type=int, default=2)
-    ap.add_argument("--delta", type=float, default=1.5)
-    ap.add_argument("--iqr-k", type=float, default=1.5)
-    ap.add_argument("--copy-shortlist-to", default="results/shortlist_artifacts", help="carpeta (relativa a base-dir) para copiar .log/.sol")
+    ap = argparse.ArgumentParser(description="Runner de experimentos para modelos MiniZinc (con inyección de estrategias).")
+    # Rutas base
+    ap.add_argument("--base-dir", required=True, help="Directorio base para salidas")
+    ap.add_argument("--model", required=True, help="Ruta al modelo .mzn (relativa a base-dir si no es absoluta)")
+    ap.add_argument("--data-dir", required=True, help="Directorio con .dzn (relativa a base-dir si no es absoluta)")
+    # Solvers y estrategias
+    ap.add_argument("--solver", nargs="+", default=["gecode", "chuffed"], help="Lista de solvers (p. ej., gecode chuffed)")
+    ap.add_argument("--strategy", nargs="+", default=["ff_min", "wdeg_split", "inorder_min"],
+                    help="Estrategias: ff_min | wdeg_split (alias: domdeg_split) | inorder_min")
+    ap.add_argument("--time-limit", type=int, default=60000, help="Límite de tiempo en ms para minizinc")
+    # Salidas
+    ap.add_argument("--out", default="results/results.csv", help="CSV de resultados (relativa a base-dir)")
+    ap.add_argument("--shortlist", action="store_true", default=False, help="Generar shortlist y artefactos")
+    ap.add_argument("--shortlist-out", default="results/shortlist.csv", help="CSV de shortlist (relativa a base-dir)")
+    ap.add_argument("--topk", type=int, default=2, help="Top-K de mejores/peores por instancia")
+    ap.add_argument("--delta", type=float, default=1.5, help="Umbral de gap entre solvers (ratio)")
+    ap.add_argument("--iqr-k", type=float, default=1.5, help="K de IQR para outliers")
+    ap.add_argument("--copy-shortlist-to", default="results/shortlist_artifacts",
+                    help="Carpeta (relativa a base-dir) para copiar .log/.sol de la shortlist")
     args = ap.parse_args()
 
-    # Normaliza rutas relativas a base-dir
+    # Helper para normalizar rutas relativas a base-dir
     def rel(p):
         return p if os.path.isabs(p) else os.path.join(args.base_dir, p)
 
-    data_files = sorted(glob.glob(os.path.join(args.data_dir, "*.dzn")))
-    if not data_files:
-        print("No .dzn files found in", args.data_dir, file=sys.stderr)
-        sys.exit(2)
-
-    os.makedirs(rel(os.path.dirname(args.out) or "."), exist_ok=True)
-
-    with open(args.model, "r", encoding="utf-8") as f:
+    # Cargar modelo
+    model_path = rel(args.model)
+    with open(model_path, "r", encoding="utf-8") as f:
         model_text = f.read()
     model_kind = detect_model_kind(model_text)
 
-    # Validar y normalizar estrategias
-    norm_strategies = []
-    for s in args.strategy:
-        ns = normalize_strategy_name(s)
-        # permitir solo las 3 soportadas
-        if ns not in ("ff_min", "wdeg_split", "default"):
-            print(f"[WARN] estrategia '{s}' no soportada; se ignora.", file=sys.stderr)
-            continue
-        norm_strategies.append(ns)
-    if not norm_strategies:
-        norm_strategies = ["ff_min", "wdeg_split", "default"]
+    # Enumerar instancias .dzn
+    data_files = sorted(glob.glob(os.path.join(rel(args.data_dir), "*.dzn")))
+    if not data_files:
+        print("No se encontraron archivos .dzn en", rel(args.data_dir), file=sys.stderr)
+        sys.exit(2)
 
-    rows = []
+    # Directorios de salida
+    out_csv_path = rel(args.out)
+    os.makedirs(os.path.dirname(out_csv_path) or ".", exist_ok=True)
     runs_dir = rel("results/artifacts")
     os.makedirs(runs_dir, exist_ok=True)
     fzn_dir = rel("results/flat")
     os.makedirs(fzn_dir, exist_ok=True)
 
+    # Normalizar estrategias
+    norm_strategies = []
+    for s in args.strategy:
+        ns = normalize_strategy_name(s)
+        if ns not in ("ff_min", "wdeg_split", "inorder_min"):
+            print(f"[WARN] estrategia '{s}' no soportada; se ignora.", file=sys.stderr)
+            continue
+        norm_strategies.append(ns)
+    if not norm_strategies:
+        norm_strategies = ["ff_min", "wdeg_split", "inorder_min"]
+
+    rows = []
+
     for solver in args.solver:
         for strat in norm_strategies:
-            # Genera una versión temporal del modelo con la estrategia (si aplica)
+            # Generar versión del modelo para la estrategia (si aplica)
             try:
                 mod_txt = inject_solve_by_kind(model_text, strat, model_kind)
             except Exception as e:
-                print(f"[WARN] Strategy {strat}: {e}; using default solve.", file=sys.stderr)
+                print(f"[WARN] {solver}/{strat}: error inyectando estrategia ({e}); se usa modelo original.", file=sys.stderr)
                 mod_txt = model_text
 
-            # --- DEBUG: muestra la línea 'solve' resultante (previa a compilar) ---
+            # Vista previa de la línea solve
             try:
                 msolve = SOLVE_REGEX.search(mod_txt)
-                solve_preview = mod_txt[msolve.start():msolve.end()] if msolve else "<no-solve>"
-                print(f"[DEBUG] {solver}/{strat}: solve-line => {solve_preview}")
+                solve_preview = mod_txt[msolve.start():msolve.end()] if msolve else "<sin-solve>"
+                print(f"[DEBUG] {solver}/{strat}: solve => {solve_preview}")
             except Exception:
                 pass
 
-            with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpm:
-                tmpm.write(mod_txt)
-                tmpm.flush()
-                tmpm_path = tmpm.name
-
+            # Archivo temporal del modelo inyectado
+            tmpm_path = None
             try:
+                with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpm:
+                    tmpm.write(mod_txt)
+                    tmpm.flush()
+                    tmpm_path = tmpm.name
+
+                # (Opcional) Conteo de DECISION_VARS
+                if "DECISION_VARS" in mod_txt:
+                    tmpc_path = None
+                    try:
+                        with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpc:
+                            tmpc.write(mod_txt + "\n")
+                            tmpc.write('output ["#DECISION_VARS=", show(length(DECISION_VARS)), "\\n"];')
+                            tmpc.flush()
+                            tmpc_path = tmpc.name
+                        preview_proc = subprocess.run(
+                            ["minizinc", "--solver", solver, "--time-limit", "1000", tmpc_path, data_files[0]],
+                            capture_output=True, text=True
+                        )
+                        if preview_proc.returncode == 0:
+                            mcount = re.search(r"#DECISION_VARS=\s*(\d+)", preview_proc.stdout)
+                            if mcount:
+                                print(f"[DEBUG] {solver}/{strat}: DECISION_VARS size = {mcount.group(1)}")
+                    except Exception:
+                        pass
+                    finally:
+                        if tmpc_path:
+                            try: os.unlink(tmpc_path)
+                            except Exception: pass
+
+                # Compilar y ejecutar cada instancia
                 for data_path in data_files:
                     base = os.path.splitext(os.path.basename(data_path))[0]
                     tag  = f"{base}__{solver}__{strat}"
 
-                    # (Preview opcional) contar DECISION_VARS si existe
-                    if "DECISION_VARS" in mod_txt:
-                        try:
-                            with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpc:
-                                tmpc.write(mod_txt + "\n")
-                                tmpc.write('output ["#DECISION_VARS=", show(length(DECISION_VARS)), "\\n"];')
-                                tmpc.flush()
-                                preview_proc = subprocess.run(
-                                    ["minizinc", "--solver", solver, "--time-limit", "1000", tmpc.name, data_path],
-                                    capture_output=True, text=True
-                                )
-                                if preview_proc.returncode == 0:
-                                    mcount = re.search(r"#DECISION_VARS=\s*(\d+)", preview_proc.stdout)
-                                    if mcount:
-                                        print(f"[DEBUG] {solver}/{strat}/{base}: DECISION_VARS size = {mcount.group(1)}")
-                        except Exception:
-                            pass
-
-                    # ----------------------------------------------------------------
-                    # Compilar a .fzn para inspeccionar 'branch' y luego ejecutar
-                    # ----------------------------------------------------------------
+                    # Compilación a FlatZinc
                     fzn_path = os.path.join(fzn_dir, f"{tag}.fzn")
                     cmd_compile = ["minizinc", "--solver", solver, "-c", tmpm_path, data_path, "-o", fzn_path]
                     proc_c = subprocess.run(cmd_compile, capture_output=True, text=True)
                     stdout_c, stderr_c, rc_c = proc_c.stdout, proc_c.stderr, proc_c.returncode
 
-                    # Si la compilación falla por identificador indefinido, reintenta con solve por defecto
+                    # Reintento con modelo original si hay identificadores indefinidos
                     if rc_c != 0 and ("undefined identifier" in (stdout_c + stderr_c).lower()):
-                        print(f"[WARN] {solver}/{strat}: retrying (compile) with default solve.", file=sys.stderr)
-                        mod_txt2 = inject_solve_by_kind(model_text, "default", model_kind)
-                        with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpm2:
-                            tmpm2.write(mod_txt2)
-                            tmpm2.flush()
-                            tmpm_path2 = tmpm2.name
-                        fzn_path = os.path.join(fzn_dir, f"{tag}.fallback.fzn")
-                        cmd_compile = ["minizinc", "--solver", solver, "-c", tmpm_path2, data_path, "-o", fzn_path]
-                        proc_c = subprocess.run(cmd_compile, capture_output=True, text=True)
-                        stdout_c, stderr_c, rc_c = proc_c.stdout, proc_c.stderr, proc_c.returncode
+                        print(f"[WARN] {solver}/{strat}: recompilo con modelo original (identificador indefinido).", file=sys.stderr)
+                        fzn_path = os.path.join(fzn_dir, f"{tag}.orig.fzn")
+                        cmd_compile2 = ["minizinc", "--solver", solver, "-c", model_path, data_path, "-o", fzn_path]
+                        proc_c2 = subprocess.run(cmd_compile2, capture_output=True, text=True)
+                        stdout_c, stderr_c, rc_c = proc_c2.stdout, proc_c2.stderr, proc_c2.returncode
 
-                    # Loguear branch-lines del FlatZinc
+                    # Inspección de líneas 'branch' en FlatZinc
                     if os.path.exists(fzn_path):
                         try:
                             with open(fzn_path, "r", encoding="utf-8", errors="ignore") as ff:
@@ -507,37 +618,35 @@ def main():
                         except Exception:
                             pass
 
-                    # Ejecutar el fzn con estadísticas
+                    # Si no hay .fzn, omitir ejecución
+                    if not os.path.exists(fzn_path):
+                        print(f"[WARN] {solver}/{strat}/{base}: .fzn no generado; se omite.", file=sys.stderr)
+                        rows.append({
+                            "file": base, "solver": solver, "strategy": strat,
+                            "rc": rc_c, "status": None, "time_raw": None, "time": None,
+                            "nodes": None, "failures": None, "peakDepth": None, "solutions": None,
+                            "restarts": None, "initTime": None, "solveTime": None
+                        })
+                        continue
+
+                    audit = audit_redundancy_in_fzn(fzn_path)
+                    print(f"[AUDIT] {tag}: allDiff={audit['allDiff_count']}  sumX={audit['sumX_count']}  rhs_examples={audit['rhs_examples']}  redundancy_on={audit['redundancy_on']}")
+
+
+                    # Ejecución con estadísticas
                     cmd = ["minizinc", "--solver", solver, "--statistics", "--time-limit", str(args.time_limit), fzn_path]
                     proc = subprocess.run(cmd, capture_output=True, text=True)
                     stdout, stderr, rc = proc.stdout, proc.stderr, proc.returncode
 
-                    # Fallback en ejecución si hubo error
-                    if rc != 0 and ("undefined identifier" in (stdout + stderr).lower()):
-                        print(f"[WARN] {solver}/{strat}: retrying (run) with default solve.", file=sys.stderr)
-                        mod_txt2 = inject_solve_by_kind(model_text, "default", model_kind)
-                        with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpm2:
-                            tmpm2.write(mod_txt2)
-                            tmpm2.flush()
-                            tmpm_path2 = tmpm2.name
-                        fzn_path2 = os.path.join(fzn_dir, f"{tag}.runfallback.fzn")
-                        cmd_compile2 = ["minizinc", "--solver", solver, "-c", tmpm_path2, data_path, "-o", fzn_path2]
-                        subprocess.run(cmd_compile2, capture_output=True, text=True)
-                        cmd = ["minizinc", "--solver", solver, "--statistics", "--time-limit", str(args.time_limit), fzn_path2]
-                        proc = subprocess.run(cmd, capture_output=True, text=True)
-                        stdout, stderr, rc = proc.stdout, proc.stderr, proc.returncode
-
-                    # Guardar salidas
+                    # Guardar artefactos de salida
                     with open(os.path.join(runs_dir, f"{tag}.sol.txt"), "w", encoding="utf-8") as fsol:
                         fsol.write(stdout)
                     with open(os.path.join(runs_dir, f"{tag}.log.txt"), "w", encoding="utf-8") as flog:
                         flog.write("CMD: " + " ".join(cmd) + "\n\n")
                         flog.write(stdout + "\n\n--- STDERR ---\n" + stderr)
 
-                    # Parseo stats
+                    # Parseo de estadísticas y normalización de tiempo total
                     stats = parse_stats(stdout + "\n" + stderr)
-
-                    # Tiempo total normalizado
                     tsec_raw = compute_total_time(stats)
                     tsec = format_time_sci(tsec_raw, digits=3)
 
@@ -559,12 +668,15 @@ def main():
                     })
                     print(f"[{solver}/{strat}] {base}: rc={rc}, status={stats.get('status')}, "
                           f"time={tsec}, nodes={stats.get('nodes')}, failures={stats.get('failures')}")
-            finally:
-                pass
 
-    # Guardar CSV de resultados (en BASE)
-    out_csv = rel(args.out)
-    with open(out_csv, "w", newline="", encoding="utf-8") as fcsv:
+            finally:
+                # Limpieza de temporal del modelo
+                if tmpm_path:
+                    try: os.unlink(tmpm_path)
+                    except Exception: pass
+
+    # CSV de resultados
+    with open(out_csv_path, "w", newline="", encoding="utf-8") as fcsv:
         w = csv.DictWriter(
             fcsv,
             fieldnames=["file","solver","strategy","rc","status","time_raw","time",
@@ -572,9 +684,9 @@ def main():
         )
         w.writeheader()
         w.writerows(rows)
-    print("Saved results CSV:", out_csv)
+    print("Saved results CSV:", out_csv_path)
 
-    # Shortlist
+    # Shortlist opcional
     if args.shortlist:
         sl = shortlist_from_rows(rows, topk=args.topk, delta=args.delta, iqr_k=args.iqr_k)
 
@@ -591,20 +703,19 @@ def main():
                 w.writerow(r)
         print(f"Saved shortlist CSV: {sl_csv} ({len(sl)} rows)")
 
-        # Copiar artefactos de la shortlist
-        if args.copy_shortlist_to:
-            target_dir = rel(args.copy_shortlist_to)
-            os.makedirs(target_dir, exist_ok=True)
-            copied = 0
-            for r in sl:
-                tag = f"{r['file']}__{r['solver']}__{r['strategy']}"
-                for ext in [".log.txt", ".sol.txt"]:
-                    src = os.path.join(rel("results"), "artifacts", f"{tag}{ext}")
-                    if os.path.exists(src):
-                        dst = os.path.join(target_dir, f"{tag}{ext}")
-                        shutil.copy2(src, dst)
-                        copied += 1
-            print(f"Copied {copied} artifacts to {target_dir}")
+        # Copia de artefactos de la shortlist
+        target_dir = rel(args.copy_shortlist_to)
+        os.makedirs(target_dir, exist_ok=True)
+        copied = 0
+        for r in sl:
+            tag = f"{r['file']}__{r['solver']}__{r['strategy']}"
+            for ext in [".log.txt", ".sol.txt"]:
+                src = os.path.join(rel("results"), "artifacts", f"{tag}{ext}")
+                if os.path.exists(src):
+                    dst = os.path.join(target_dir, f"{tag}{ext}")
+                    shutil.copy2(src, dst)
+                    copied += 1
+        print(f"Copied {copied} artifacts to {target_dir}")
 
 if __name__ == "__main__":
     main()
