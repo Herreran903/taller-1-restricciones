@@ -1,0 +1,26 @@
+CMD: minizinc --all-solutions --solver gecode --statistics --time-limit 60000 modelos/reunion/results/flat/test_01__gecode__ff_min.fzn
+
+% Generated FlatZinc statistics:
+%%%mzn-stat: paths=0
+%%%mzn-stat: flatIntVars=210
+%%%mzn-stat: flatIntConstraints=61
+%%%mzn-stat: method="satisfy"
+%%%mzn-stat: flatTime=0.138317
+%%%mzn-stat-end
+=====UNSATISFIABLE=====
+%%%mzn-stat: initTime=0.000627916
+%%%mzn-stat: solveTime=0.0741022
+%%%mzn-stat: solutions=0
+%%%mzn-stat: variables=210
+%%%mzn-stat: propagators=31
+%%%mzn-stat: propagations=267270
+%%%mzn-stat: nodes=31331
+%%%mzn-stat: failures=15666
+%%%mzn-stat: restarts=0
+%%%mzn-stat: peakDepth=6
+%%%mzn-stat-end
+%%%mzn-stat: nSolutions=0
+%%%mzn-stat-end
+
+
+--- STDERR ---

@@ -1,8 +1,12 @@
-N = 5;
-personas = ["Ana","Bruno","Carla","Diego","Elena"];
-K_NEXT = 1;
-K_SEP  = 1;
-K_DIST = 1;
-NEXT = array2d(1..K_NEXT, 1..2, [ 1, 2 ]);            % next(Ana,Bruno)
-SEP  = array2d(1..K_SEP,  1..2, [ 3, 4 ]);            % separate(Carla,Diego)
-DIST = array2d(1..K_DIST, 1..3, [ 2, 5, 1 ]);         % distance(Bruno,Elena,1)
+N = 90;
+personas = [ "p" ++ show(i) | i in 1..N ];
+K_NEXT = 30;
+NEXT = array2d(1..K_NEXT, 1..2, [
+  2,3,  2,4,  2,5,  2,6,  2,7,  2,8,  2,9,  2,10, 2,11, 2,12,
+  30,31, 30,32, 30,33, 30,34, 30,35, 30,36, 30,37, 30,38, 30,39, 30,40,
+  60,61, 60,62, 60,63, 60,64, 60,65, 60,66, 60,67, 60,68, 60,69, 60,70
+]);
+K_SEP = 0;
+SEP = array2d(1..0, 1..2, []);
+K_DIST = 0;
+DIST = array2d(1..0, 1..3, []);

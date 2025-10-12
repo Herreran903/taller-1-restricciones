@@ -80,7 +80,7 @@ array[int] of var DIG: BRANCH_VARS = [ X[r,c] | r in S, c in S where G[r,c] = 0 
 solve :: int_search(BRANCH_VARS, input_order, indomain_min, complete) satisfy;
 
 % [D] Default del solver (sin anotación)
-% solve satisfy;
+solve satisfy;
 
 % ----------------------- Salida --------------------------------
 output
