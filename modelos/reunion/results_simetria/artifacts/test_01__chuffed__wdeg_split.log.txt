@@ -1,0 +1,36 @@
+CMD: minizinc --all-solutions --solver chuffed --statistics --time-limit 60000 modelos/reunion/results/flat/test_01__chuffed__wdeg_split.fzn
+
+% Generated FlatZinc statistics:
+%%%mzn-stat: paths=0
+%%%mzn-stat: flatIntVars=210
+%%%mzn-stat: flatIntConstraints=62
+%%%mzn-stat: method="satisfy"
+%%%mzn-stat: flatTime=0.0435157
+%%%mzn-stat-end
+=====UNSATISFIABLE=====
+%%%mzn-stat: nodes=1055
+%%%mzn-stat: failures=273
+%%%mzn-stat: restarts=0
+%%%mzn-stat: variables=43566
+%%%mzn-stat: intVars=211
+%%%mzn-stat: boolVariables=43353
+%%%mzn-stat: propagators=92
+%%%mzn-stat: propagations=34613
+%%%mzn-stat: peakDepth=13
+%%%mzn-stat: nogoods=273
+%%%mzn-stat: backjumps=782
+%%%mzn-stat: peakMem=0.00
+%%%mzn-stat: time=0.022
+%%%mzn-stat: initTime=0.014
+%%%mzn-stat: solveTime=0.008
+%%%mzn-stat: baseMem=0.00
+%%%mzn-stat: trailMem=0.08
+%%%mzn-stat: randomSeed=1247226485
+%%%mzn-stat-end
+%%%mzn-stat: nSolutions=0
+%%%mzn-stat-end
+
+
+--- STDERR ---
+WARNING: the --time-out flag has recently been changed.The time-out is now provided in milliseconds instead of seconds
+% Warning: Unknown or not support variable selection annotation 'dom_w_deg'! Ignore variable selection annotation and replace it by 'input_order'.

@@ -63,43 +63,9 @@ constraint
     abs(POS_OF[DIST[i,1]] - POS_OF[DIST[i,2]]) <= DIST[i,3] + 1
   );
 
-% ----------------------- Redundantes ----------------
-% --- Reforzar permutación ---
-constraint all_different(POS_OF);
-constraint all_different(PER_AT);
-constraint sum(p in S)(POS_OF[p]) = N*(N+1) div 2;
-
-% --- Validación de índices y parámetros -------------------------
-constraint
-  forall(i in 1..K_NEXT)(
-    NEXT[i,1] in S /\ NEXT[i,2] in S /\ NEXT[i,1] != NEXT[i,2]
-  );
-constraint
-  forall(i in 1..K_SEP)(
-    SEP[i,1] in S /\ SEP[i,2] in S /\ SEP[i,1] != SEP[i,2]
-  );
-constraint
-  forall(i in 1..K_DIST)(
-    DIST[i,1] in S /\ DIST[i,2] in S /\ DIST[i,1] != DIST[i,2] /\
-    0 <= DIST[i,3] /\ DIST[i,3] <= N-2
-  );
-
-% --- Evitar contradicciones obvias en datos --------------------
-constraint
-  forall(i in 1..K_NEXT, j in 1..K_SEP)(
-    not( (NEXT[i,1] = SEP[j,1] /\ NEXT[i,2] = SEP[j,2]) \/
-         (NEXT[i,1] = SEP[j,2] /\ NEXT[i,2] = SEP[j,1]) )
-  );
-
-% --- Implicaciones locales útiles ------------------------------
-% distance(A,B,0) ≡ next(A,B) → |POS_OF[A] - POS_OF[B]| = 1
-constraint
-  forall(i in 1..K_DIST where DIST[i,3] = 0)(
-    abs(POS_OF[DIST[i,1]] - POS_OF[DIST[i,2]]) = 1
-  );
 
 % ----------------------- Simetría ------------
-constraint PER_AT[1] < PER_AT[N];
+% constraint PER_AT[1] < PER_AT[N];
 
 % ----------------------- Búsqueda -------------------------------
 % [H1] Heurística 1 — clásica y estable
