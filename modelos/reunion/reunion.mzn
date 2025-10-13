@@ -44,25 +44,38 @@ array[POS] of var S:   PER_AT;
 constraint inverse(POS_OF, PER_AT);
 
 % ----------------------- Restricciones -------------------------
-% 1) next(A,B): adyacentes → |POS_OF[A] - POS_OF[B]| = 1
+% next(A,B): adyacentes → |POS_OF[A] - POS_OF[B]| = 1
 constraint
   forall(i in 1..K_NEXT)(
     abs(POS_OF[NEXT[i,1]] - POS_OF[NEXT[i,2]]) = 1
   );
 
-% 2) separate(A,B): no adyacentes → |POS_OF[A] - POS_OF[B]| >= 2
+% separate(A,B): no adyacentes → |POS_OF[A] - POS_OF[B]| >= 2
 constraint
   forall(i in 1..K_SEP)(
     abs(POS_OF[SEP[i,1]] - POS_OF[SEP[i,2]]) >= 2
   );
 
-% 3) distance(A,B,M): a lo sumo M personas entre A y B
-%    ⇒ |POS_OF[A] - POS_OF[B]| <= M + 1
+% distance(A,B,M): a lo sumo M personas entre A y B ⇒ |POS_OF[A] - POS_OF[B]| <= M + 1
 constraint
   forall(i in 1..K_DIST)(
     abs(POS_OF[DIST[i,1]] - POS_OF[DIST[i,2]]) <= DIST[i,3] + 1
   );
 
+% ----------------------- Redundantes ---------------------------
+% Evita que una persona aparezca en demasiadas relaciones NEXT
+% constraint forall(p in S)(
+%   sum([ bool2int(p == NEXT[i,1] \/ p == NEXT[i,2]) | i in 1..K_NEXT ]) <= 2
+% );
+
+% % Evita pares que sean a la vez NEXT y SEPARATE
+% constraint
+% forall(i in 1..K_NEXT, j in 1..K_SEP)(
+%   not (
+%     (NEXT[i,1] == SEP[j,1] /\ NEXT[i,2] == SEP[j,2]) \/
+%     (NEXT[i,1] == SEP[j,2] /\ NEXT[i,2] == SEP[j,1])
+%   )
+% );
 
 % ----------------------- Simetría ------------
 % constraint PER_AT[1] < PER_AT[N];
@@ -72,10 +85,10 @@ constraint
 % solve :: int_search(POS_OF, first_fail, indomain_min, complete) satisfy;
 
 % [H2] Heurística 2 — informada por conflictos
-% solve :: int_search(POS_OF, dom_w_deg, indomain_split, complete) satisfy;
+solve :: int_search(POS_OF, dom_w_deg, indomain_split, complete) satisfy;
 
 % [D] Default del solver (sin anotación)
-solve satisfy;
+% solve satisfy;
 
 % ----------------------- Salida --------------------------------
 output

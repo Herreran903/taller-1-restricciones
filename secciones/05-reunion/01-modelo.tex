@@ -22,7 +22,12 @@
   \item[\textbf{R3 — Preferencias \(\textsf{separate}(A,B)\):}] \(A\) y \(B\) no pueden quedar adyacentes. \(\forall (A,B)\in \texttt{SEP}:\ \big|\,POS\_OF_A - POS\_OF_B\,\big| \ge 2.\)
   \item[\textbf{R4 — Preferencias \(\textsf{distance}(A,B,M)\):}] A lo sumo \(M\) personas entre \(A\) y \(B\), equivalente a cota sobre distancia de posiciones. \(\forall (A,B,M)\in \texttt{DIST}:\ \big|\,POS\_OF_A - POS\_OF_B\,\big|\ \le\ M+1.\)
 \end{description}
+\subsubsection*{Restricciones redundantes}
+\begin{description}
+  \item[\textbf{R5 — Límite de apariciones en \(\textsf{next}\):}] Cada persona puede participar en a lo sumo dos relaciones de adyacencia, ya que en una fila solo puede tener un vecino a cada lado. \(\forall p\in S:\ \sum_i [p=\texttt{NEXT}[i,1]\ \vee\ p=\texttt{NEXT}[i,2]] \le 2.\)
+  \item[\textbf{R6 — Consistencia entre \(\textsf{next}\) y \(\textsf{separate}\):}] Se evita que un mismo par de personas aparezca simultáneamente en ambas preferencias, pues sería una contradicción directa. \(\forall (A,B)\in\texttt{NEXT},\ (C,D)\in\texttt{SEP}:\ \neg[(A,B)=(C,D)\ \vee\ (A,B)=(D,C)].\)
+\end{description}
 \subsubsection*{Restricciones de simetrías}
 \begin{description}
-  \item[\textbf{R5 — Rompimiento de simetría izquierda–derecha:}] Las soluciones reflejadas son equivalentes; para evitar duplicados, se fija \(PER\_AT_1<PER\_AT_N.\)
+  \item[\textbf{R7 — Rompimiento de simetría izquierda–derecha:}] Las soluciones reflejadas son equivalentes; para evitar duplicados, se fija \(PER\_AT_1<PER\_AT_N.\)
 \end{description}

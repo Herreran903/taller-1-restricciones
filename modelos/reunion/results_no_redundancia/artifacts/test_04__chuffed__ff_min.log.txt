@@ -1,0 +1,35 @@
+CMD: minizinc --all-solutions --solver chuffed --statistics --time-limit 60000 modelos/reunion/results/flat/test_04__chuffed__ff_min.fzn
+
+% Generated FlatZinc statistics:
+%%%mzn-stat: paths=0
+%%%mzn-stat: flatIntVars=26
+%%%mzn-stat: flatIntConstraints=16
+%%%mzn-stat: method="satisfy"
+%%%mzn-stat: flatTime=0.0447157
+%%%mzn-stat-end
+=====UNSATISFIABLE=====
+%%%mzn-stat: nodes=7
+%%%mzn-stat: failures=7
+%%%mzn-stat: restarts=0
+%%%mzn-stat: variables=560
+%%%mzn-stat: intVars=27
+%%%mzn-stat: boolVariables=531
+%%%mzn-stat: propagators=23
+%%%mzn-stat: propagations=154
+%%%mzn-stat: peakDepth=1
+%%%mzn-stat: nogoods=7
+%%%mzn-stat: backjumps=0
+%%%mzn-stat: peakMem=0.00
+%%%mzn-stat: time=0.000
+%%%mzn-stat: initTime=0.000
+%%%mzn-stat: solveTime=0.000
+%%%mzn-stat: baseMem=0.00
+%%%mzn-stat: trailMem=0.00
+%%%mzn-stat: randomSeed=-1128622933
+%%%mzn-stat-end
+%%%mzn-stat: nSolutions=0
+%%%mzn-stat-end
+
+
+--- STDERR ---
+WARNING: the --time-out flag has recently been changed.The time-out is now provided in milliseconds instead of seconds
