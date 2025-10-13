@@ -1,7 +1,8 @@
 % !TEX root = ../../main.tex
 
 \subsection{Pruebas}\label{sec:05-reunion-pruebas}
-Las instancias \texttt{test\_01}, \texttt{test\_02} y \texttt{test\_03} escalan en dificultad: \texttt{test\_01} es \emph{UNSAT} para evidenciar entradas inviables; \texttt{test\_02} explota la simetría espejo (sensible a romper o no la simetría); y \texttt{test\_03} es factible pero más exigente por restricciones solapadas.
+Se usaron cuatro instancias: \texttt{test\_01} es \emph{UNSAT} por inviabilidad estructural; \texttt{test\_02} muestra el efecto del rompimiento de simetría; \texttt{test\_03} es factible y más exigente por restricciones solapadas; y \texttt{test\_04} valida las redundancias con un caso pequeño e insatisfactible por conflicto entre \textsf{next} y \textsf{separate}.
+
 
 \begin{compactfloats}
   \begin{table}[H]
@@ -57,6 +58,39 @@ Las instancias \texttt{test\_01}, \texttt{test\_02} y \texttt{test\_03} escalan 
       test\_01 & gecode  & first\_fail  & indomain\_min   & 7.473e-02 & 31331 & 15666 &  6 \\
       test\_02 & gecode  & first\_fail  & indomain\_min   & 3.032e-03 &  1103 &  544 &  7 \\
       test\_03 & gecode  & first\_fail  & indomain\_min   & 3.170e-03 &   429 &  173 &  8 \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+
+  \begin{table}[H]
+    \centering
+    \small
+    \setlength{\tabcolsep}{1.8pt}
+    \caption{Resultados de pruebas \textbf{con} y \textbf{sin} restricciones redundantes.}
+    \label{tab:pruebas-reunion-redundancia}
+    \begin{tabular}{l l l r r r r r}
+      \toprule
+      \textbf{Archivo} & \textbf{Solver} & \textbf{Estrategia} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} & \textbf{Modo} \\
+      \midrule
+      test\_01 & chuffed & wdeg\_split & 2.100e-02 & 1055 & 273 & 13 & sin red. \\
+      test\_04 & chuffed & wdeg\_split & 0.000e+00 & 11 & 7 & 2 & sin red. \\
+      test\_01 & chuffed & ff\_min & 1.800e-02 & 180 & 180 & 3 & sin red. \\
+      test\_04 & chuffed & ff\_min & 0.000e+00 & 7 & 7 & 1 & sin red. \\
+      \midrule
+      test\_01 & gecode & wdeg\_split & 2.057e-03 & 355 & 178 & 8 & sin red. \\
+      test\_04 & gecode & wdeg\_split & 1.480e-03 & 11 & 6 & 3 & sin red. \\
+      test\_01 & gecode & ff\_min & 6.857e-02 & 30981 & 15491 & 6 & sin red. \\
+      test\_04 & gecode & ff\_min & 2.768e-04 & 13 & 7 & 1 & sin red. \\
+      \midrule
+      test\_01 & chuffed & wdeg\_split & 0.000e+00 & 0 & 1 & 0 & con red. \\
+      test\_04 & chuffed & wdeg\_split & 0.000e+00 & 0 & 1 & 0 & con red. \\
+      test\_01 & chuffed & ff\_min & 0.000e+00 & 0 & 1 & 0 & con red. \\
+      test\_04 & chuffed & ff\_min & 0.000e+00 & 0 & 1 & 0 & con red. \\
+      \midrule
+      test\_01 & gecode & wdeg\_split & 2.897e-03 & 0 & 1 & 0 & con red. \\
+      test\_04 & gecode & wdeg\_split & 9.996e-05 & 0 & 1 & 0 & con red. \\
+      test\_01 & gecode & ff\_min & 9.808e-05 & 0 & 1 & 0 & con red. \\
+      test\_04 & gecode & ff\_min & 1.051e-04 & 0 & 1 & 0 & con red. \\
       \bottomrule
     \end{tabular}
   \end{table}
