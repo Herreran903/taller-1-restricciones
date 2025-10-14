@@ -3,18 +3,19 @@
 %%%mzn-stat: flatIntVars=57
 %%%mzn-stat: flatIntConstraints=54
 %%%mzn-stat: method="satisfy"
-%%%mzn-stat: flatTime=0.0405997
+%%%mzn-stat: flatTime=0.0403026
 %%%mzn-stat-end
 X_INTRODUCED_16_ = array1d(1..81,[5, 2, 4, 7, 3, 8, 9, 1, 6, 3, 8, 9, 5, 6, 1, 2, 7, 4, 6, 7, 1, 4, 9, 2, 3, 8, 5, 7, 9, 6, 3, 5, 4, 8, 2, 1, 1, 4, 8, 2, 7, 6, 5, 9, 3, 2, 5, 3, 8, 1, 9, 6, 4, 7, 4, 3, 2, 6, 8, 7, 1, 5, 9, 8, 1, 5, 9, 4, 3, 7, 6, 2, 9, 6, 7, 1, 2, 5, 4, 3, 8]);
 ----------
-%%%mzn-stat: initTime=0.000512416
-%%%mzn-stat: solveTime=0.000553042
+==========
+%%%mzn-stat: initTime=0.000550375
+%%%mzn-stat: solveTime=0.00088575
 %%%mzn-stat: solutions=1
 %%%mzn-stat: variables=153
 %%%mzn-stat: propagators=54
-%%%mzn-stat: propagations=2350
-%%%mzn-stat: nodes=43
-%%%mzn-stat: failures=20
+%%%mzn-stat: propagations=2817
+%%%mzn-stat: nodes=51
+%%%mzn-stat: failures=25
 %%%mzn-stat: restarts=0
 %%%mzn-stat: peakDepth=8
 %%%mzn-stat-end

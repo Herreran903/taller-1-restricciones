@@ -1,24 +1,25 @@
-CMD: minizinc --solver chuffed --statistics --time-limit 60000 modelos/sudoku/results/flat/test_03__chuffed__wdeg_split.fzn
+CMD: minizinc --all-solutions --solver chuffed --statistics --time-limit 60000 modelos/sudoku/results/flat/test_03__chuffed__wdeg_split.fzn
 
 % Generated FlatZinc statistics:
 %%%mzn-stat: paths=0
 %%%mzn-stat: flatIntVars=60
 %%%mzn-stat: flatIntConstraints=27
 %%%mzn-stat: method="satisfy"
-%%%mzn-stat: flatTime=0.0443555
+%%%mzn-stat: flatTime=0.0417999
 %%%mzn-stat-end
 X_INTRODUCED_16_ = array1d(1..81,[7, 5, 1, 8, 6, 4, 2, 3, 9, 8, 9, 2, 3, 1, 7, 4, 6, 5, 6, 4, 3, 2, 9, 5, 8, 7, 1, 2, 3, 8, 1, 7, 9, 5, 4, 6, 9, 7, 4, 5, 2, 6, 3, 1, 8, 1, 6, 5, 4, 8, 3, 9, 2, 7, 3, 1, 9, 6, 4, 8, 7, 5, 2, 5, 2, 7, 9, 3, 1, 6, 8, 4, 4, 8, 6, 7, 5, 2, 1, 9, 3]);
 ----------
-%%%mzn-stat: nodes=338
-%%%mzn-stat: failures=324
+==========
+%%%mzn-stat: nodes=355
+%%%mzn-stat: failures=349
 %%%mzn-stat: restarts=0
 %%%mzn-stat: variables=1238
 %%%mzn-stat: intVars=69
 %%%mzn-stat: boolVariables=1167
 %%%mzn-stat: propagators=55
-%%%mzn-stat: propagations=7261
+%%%mzn-stat: propagations=7769
 %%%mzn-stat: peakDepth=9
-%%%mzn-stat: nogoods=324
+%%%mzn-stat: nogoods=349
 %%%mzn-stat: backjumps=6
 %%%mzn-stat: peakMem=0.00
 %%%mzn-stat: time=0.007
@@ -26,7 +27,7 @@ X_INTRODUCED_16_ = array1d(1..81,[7, 5, 1, 8, 6, 4, 2, 3, 9, 8, 9, 2, 3, 1, 7, 4
 %%%mzn-stat: solveTime=0.007
 %%%mzn-stat: baseMem=0.00
 %%%mzn-stat: trailMem=0.01
-%%%mzn-stat: randomSeed=2127431975
+%%%mzn-stat: randomSeed=-307810268
 %%%mzn-stat-end
 %%%mzn-stat: nSolutions=1
 %%%mzn-stat-end
