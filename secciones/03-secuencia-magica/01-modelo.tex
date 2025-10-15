@@ -1,5 +1,41 @@
 % !TEX root = ../../main.tex
 
-\subsection{Modelo}\label{sec:03-secuencia-magica-modelo}
-Definición de variables, dominios y restricciones principales.
-Justificación del modelo.
+
+\subsection{Modelo}\label{sec:01-secuencias-magicas-modelo}
+
+\subsubsection*{Parámetros}
+\begin{description}
+  \item[\textbf{P1 — \(n\):}] Longitud de la secuencia mágica. Define el tamaño del arreglo \(x\).
+\end{description}
+
+\subsubsection*{Variables}
+\begin{description}
+  \item[\textbf{V1 — \(x[i]\):}] Valor en la posición \(i\), con dominio \(x[i] \in \{0, 1, \dots, n-1\}\) para todo \(i = 0, 1, \dots, n-1\).
+\end{description}
+
+\subsubsection*{Restricciones principales}
+\begin{description}
+  \item[\textbf{R1 — Definición de secuencia mágica:}] Cada número \(i\) aparece exactamente \(x[i]\) veces en la secuencia. 
+  \[
+  \forall i \in \{0, \dots, n-1\}:\quad x[i] = \bigl|\{\, j \in \{0, \dots, n-1\} : x[j] = i \,\}\bigr|.
+  \]
+  En MiniZinc, esto se implementa mediante la restricción global:
+  \begin{verbatim}
+  constraint forall(i in 0..n-1)( count(x, i) = x[i] );
+  \end{verbatim}
+\end{description}
+
+\subsubsection*{Restricciones redundantes (opcionales)}
+\begin{description}
+  \item[\textbf{R2 — Suma total:}]
+  \[
+  \sum_{i=0}^{n-1} x[i] = n.
+  \]
+  Justificación: la suma de las frecuencias debe ser igual a la longitud total de la secuencia.
+
+  \item[\textbf{R3 — Equilibrio de valores:}]
+  \[
+  \sum_{i=0}^{n-1} (i-1)\,x[i] = 0.
+  \]
+  Esta relación expresa el equilibrio entre los índices y las frecuencias, ayudando a reducir el espacio de búsqueda.
+\end{description}
