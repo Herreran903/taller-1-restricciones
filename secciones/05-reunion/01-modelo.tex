@@ -1,4 +1,5 @@
 % !TEX root = ../../main.tex
+
 \subsection{Modelo}\label{sec:05-reunion-modelo}
 \subsubsection*{Parámetros}
 \begin{description}
@@ -7,7 +8,7 @@
   \item[\textbf{P3 — \(POS\):}] Conjunto de posiciones disponibles en la fila. \(POS=\{1,\dots,N\}.\)
   \item[\textbf{P4 — \(\texttt{personas}\):}] Vector de nombres. \(\texttt{personas}\in \text{String}^{S}.\)
   \item[\textbf{P5 — \(K_{\textsf{next}}, K_{\textsf{sep}}, K_{\textsf{dist}}\):}] Cantidad de preferencias de cada tipo. \(K_{\textsf{next}},\,K_{\textsf{sep}},\,K_{\textsf{dist}}\in\mathbb{Z}_{\ge 0}.\)
-  \item[\textbf{P6 — \(\texttt{NEXT},\texttt{SEP},\texttt{DIST}\):}] Matrices de preferencias: \(\texttt{NEXT}\in S^{K_{\textsf{next}}\times 2},\ \texttt{SEP}\in S^{K_{\textsf{sep}}\times 2},\ \texttt{DIST}\in \big(S\times S\times \{0,\dots,N-2\}\big)^{K_{\textsf{dist}}}.\) Cada fila codifica un par (o trío) de personas y, en \(\texttt{DIST}\), una cota \(M\) de separación.
+  \item[\textbf{P6 — \(\texttt{NEXT},\texttt{SEP},\texttt{DIST}\):}] Matrices de preferencias: \(\texttt{NEXT}\in S^{K_{\textsf{next}}\times 2},\ \texttt{SEP}\in S^{K_{\textsf{sep}}\times 2},\ \texttt{DIST}\in \big(S\times S\times \{0,\dots,N-2\}\big)^{K_{\textsf{dist}}}.\) Cada fila codifica un par de personas y, en \(\texttt{DIST}\), una cota \(M\) de separación.
 \end{description}
 \subsubsection*{Variables}
 \begin{description}
@@ -23,15 +24,10 @@
 \end{description}
 \subsubsection*{Restricciones redundantes}
 \begin{description}
-  \item[\textbf{R5 — Refuerzo de permutación:}] Duplican la biección y aceleran la propagación. \(\textit{all\_different}\big([POS\_OF_p\mid p\in S]\big),\ \textit{all\_different}\big([PER\_AT_i\mid i\in POS]\big),\ \sum_{p\in S} POS\_OF_p\ =\ \frac{N(N+1)}{2}.\)
-  \item[\textbf{R6 — Validación de datos:}] Índices válidos y pares distintos; en \(\texttt{DIST}\), cota \(M\) dentro de \([0,\,N\!-\!2]\). \(\forall (A,B)\in \texttt{NEXT}:\ A,B\in S,\ A\ne B;\ \forall (A,B)\in \texttt{SEP}:\ A,B\in S,\ A\ne B;\ \forall (A,B,M)\in \texttt{DIST}:\ A,B\in S,\ A\ne B,\ 0\le M\le N-2.\)
-  \item[\textbf{R7 — No contradicción \(\textsf{next}\) vs \(\textsf{sep}\):}] Se prohíbe declarar simultáneamente que dos personas deban y no deban estar juntas. \(\forall (A,B)\in \texttt{NEXT},\ \forall (C,D)\in \texttt{SEP}:\ (A,B)\not\in\{(C,D),(D,C)\}.\)
-  \item[\textbf{R8 — Implicación local:}] \(\textsf{distance}(A,B,0)\) es equivalente a \(\textsf{next}(A,B)\). \(\forall (A,B,0)\in \texttt{DIST}:\ \big|\,POS\_OF_A - POS\_OF_B\,\big| = 1.\)
+  \item[\textbf{R5 — Límite de apariciones en \(\textsf{next}\):}] Cada persona puede participar en a lo sumo dos relaciones de adyacencia, ya que en una fila solo puede tener un vecino a cada lado. \(\forall p\in S:\ \sum_i [p=\texttt{NEXT}[i,1]\ \vee\ p=\texttt{NEXT}[i,2]] \le 2.\)
+  \item[\textbf{R6 — Consistencia entre \(\textsf{next}\) y \(\textsf{separate}\):}] Se evita que un mismo par de personas aparezca simultáneamente en ambas preferencias, pues sería una contradicción directa. \(\forall (A,B)\in\texttt{NEXT},\ (C,D)\in\texttt{SEP}:\ \neg[(A,B)=(C,D)\ \vee\ (A,B)=(D,C)].\)
 \end{description}
 \subsubsection*{Restricciones de simetrías}
 \begin{description}
-  \item[\textbf{R9 — Rompimiento de simetría izquierda–derecha:}] Las soluciones reflejadas son equivalentes; para evitar duplicados, se fija \(PER\_AT_1<PER\_AT_N.\)
+  \item[\textbf{R7 — Rompimiento de simetría izquierda–derecha:}] Las soluciones reflejadas son equivalentes; para evitar duplicados, se fija \(PER\_AT_1<PER\_AT_N.\)
 \end{description}
-
-
-

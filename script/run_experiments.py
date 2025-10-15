@@ -142,9 +142,9 @@ def ensure_branch_vars(model_text: str, kind: str) -> tuple[str, str | None]:
 # ==============================================================
 
 # Tres estrategias diferenciadas (sin 'default'):
-# - ff_min      : first_fail (var) + indomain_min (val)     — prioriza variables más restringidas; valores bajos.
-# - wdeg_split  : dom_w_deg  (var) + indomain_split (val)   — pondera conflictos; divide dominios (branching binario).
-# - inorder_min : input_order (var) + indomain_min (val)    — respeta el orden de declaración; útil si el modelo está “bien ordenado”.
+# - ff_min      : first_fail (var) + indomain_min (val)
+# - wdeg_split  : dom_w_deg  (var) + indomain_split (val)
+# - inorder_min : input_order (var) + indomain_min (val)
 
 SOLVE_TEMPLATES_BY_MODEL = {
     "sudoku": {
@@ -417,8 +417,7 @@ def audit_redundancy_in_fzn(fzn_path: str) -> dict:
     Auditoría robusta del FlatZinc:
       - allDiff_count: cuenta apariciones de all_different (_int) si se mantiene global.
       - sumX_count: cuenta int_lin_eq con TODOS los coeficientes = 1 y TODAS las vars empezando por 'X'
-                    (X[r,c] aplanado típicamente como X_1_1, X_1_2, ...)
-      - rhs_examples: algunos RHS observados (pueden ser !=45 si hay pistas).
+      - rhs_examples: algunos RHS observados.
     """
     try:
         with open(fzn_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -426,10 +425,7 @@ def audit_redundancy_in_fzn(fzn_path: str) -> dict:
     except Exception:
         return {"allDiff_count": None, "sumX_count": None, "redundancy_on": None, "rhs_examples": []}
 
-    # 1) all_different, permitiendo variantes
     allDiff_count = len(re.findall(r'\ball[_ ]?different(?:_int)?\b', txt))
-
-    # 2) int_lin_eq([...coeffs...], [...vars...], RHS) – tolerante a multilínea
     pat = re.compile(
         r'constraint\s+int_lin_eq\s*\(\s*\[([^\]]*)\]\s*,\s*\[([^\]]*)\]\s*,\s*(-?\d+)\s*\)',
         re.DOTALL
@@ -439,17 +435,14 @@ def audit_redundancy_in_fzn(fzn_path: str) -> dict:
         items = [c.strip() for c in coeffs_str.split(",") if c.strip()]
         return bool(items) and all(c == "1" for c in items)
 
-    # Acepta variables que empiecen por 'X' y NO sean constantes (p.ej., X_1_1, X_2_3, X[1,2])
     VAR_TOKEN = re.compile(r'^[A-Za-z_][A-Za-z0-9_\[\], ]*$')
     def _all_X_vars(vars_str: str) -> bool:
         items = [v.strip() for v in vars_str.split(",") if v.strip()]
         if not items:
             return False
-        # Cada item debe “parecer” un identificador/array-elem y empezar por 'X'
         for v in items:
             if not VAR_TOKEN.match(v):
                 return False
-            # extrae el nombre base antes de '[' o primer '_' (X, X_1_1, X[1,2], etc.)
             base = v.split("[", 1)[0].split(",", 1)[0].split(" ", 1)[0].split("_", 1)[0]
             if not base.startswith("X"):
                 return False
@@ -464,8 +457,6 @@ def audit_redundancy_in_fzn(fzn_path: str) -> dict:
             if len(rhs_examples) < 5:
                 rhs_examples.append(int(rhs))
 
-    # Heurística de decisión: si hay varias sumas sobre X, asumimos redundancia "ON".
-    # En un 9x9 completo lo normal sería ~27; con pistas y simplificaciones puede bajar.
     redundancy_on = (sumX_count >= 5)
 
     return {
@@ -490,6 +481,9 @@ def main():
     ap.add_argument("--strategy", nargs="+", default=["ff_min", "wdeg_split", "inorder_min"],
                     help="Estrategias: ff_min | wdeg_split (alias: domdeg_split) | inorder_min")
     ap.add_argument("--time-limit", type=int, default=60000, help="Límite de tiempo en ms para minizinc")
+    # NUEVO: enumerar todas las soluciones
+    ap.add_argument("--all-solutions", action="store_true", default=False,
+                    help="Enumerar todas las soluciones (no detener en la primera)")
     # Salidas
     ap.add_argument("--out", default="results/results.csv", help="CSV de resultados (relativa a base-dir)")
     ap.add_argument("--shortlist", action="store_true", default=False, help="Generar shortlist y artefactos")
@@ -629,12 +623,12 @@ def main():
                         })
                         continue
 
-                    audit = audit_redundancy_in_fzn(fzn_path)
-                    print(f"[AUDIT] {tag}: allDiff={audit['allDiff_count']}  sumX={audit['sumX_count']}  rhs_examples={audit['rhs_examples']}  redundancy_on={audit['redundancy_on']}")
-
-
                     # Ejecución con estadísticas
                     cmd = ["minizinc", "--solver", solver, "--statistics", "--time-limit", str(args.time_limit), fzn_path]
+                    if args.all_solutions:
+                        # Colocarlo al inicio tras 'minizinc' para evitar rarezas con el parser
+                        cmd.insert(1, "--all-solutions")
+
                     proc = subprocess.run(cmd, capture_output=True, text=True)
                     stdout, stderr, rc = proc.stdout, proc.stderr, proc.returncode
 

@@ -1,30 +1,96 @@
 % !TEX root = ../../main.tex
 
 \subsection{Pruebas}\label{sec:05-reunion-pruebas}
-Se evaluó el modelo sobre una batería de instancias \texttt{.dzn}.
+Se usaron cuatro instancias: \texttt{test\_01} es \emph{UNSAT} por inviabilidad estructural; \texttt{test\_02} muestra el efecto del rompimiento de simetría; \texttt{test\_03} es factible y más exigente por restricciones solapadas; y \texttt{test\_04} valida las redundancias con un caso pequeño e insatisfactible por conflicto entre \textsf{next} y \textsf{separate}.
+
 
 \begin{compactfloats}
   \begin{table}[H]
     \centering
     \small
-    \setlength{\tabcolsep}{2.8pt}
-    \caption{Resultados de pruebas \textbf{con} restricciones redundantes (reunión).}
+    \setlength{\tabcolsep}{1.8pt}
+    \caption{Resultados de pruebas \textbf{con} restricciones de simetría.}
     \label{tab:pruebas-reunion-on}
     \begin{tabular}{l l l l r r r r}
       \toprule
       \textbf{Archivo} & \textbf{Solver} & \textbf{Var heur} & \textbf{Val heur} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} \\
+      \midrule
+      test\_01 & chuffed & dom\_w\_deg  & indomain\_split & 2.200e-02 &  1055 &  273 & 13 \\
+      test\_02 & chuffed & dom\_w\_deg  & indomain\_split & 3.000e-03 &    83 &   77 &  8 \\
+      test\_03 & chuffed & dom\_w\_deg  & indomain\_split & 8.000e-03 &   531 &  426 &  9 \\
+      \midrule
+      test\_01 & chuffed & first\_fail  & indomain\_min   & 1.800e-02 &   180 &  180 &  3 \\
+      test\_02 & chuffed & first\_fail  & indomain\_min   & 3.000e-03 &    93 &   84 &  3 \\
+      test\_03 & chuffed & first\_fail  & indomain\_min   & 3.000e-03 &   147 &  145 &  6 \\
+      \midrule
+      test\_01 & gecode  & dom\_w\_deg  & indomain\_split & 1.634e-03 &   355 &  178 &  8 \\
+      test\_02 & gecode  & dom\_w\_deg  & indomain\_split & 4.356e-03 &  1019 &  506 & 12 \\
+      test\_03 & gecode  & dom\_w\_deg  & indomain\_split & 1.332e-03 &   237 &   98 & 11 \\
+      \midrule
+      test\_01 & gecode  & first\_fail  & indomain\_min   & 7.061e-02 & 30981 & 15491 &  6 \\
+      test\_02 & gecode  & first\_fail  & indomain\_min   & 1.864e-03 &  1019 &  506 &  7 \\
+      test\_03 & gecode  & first\_fail  & indomain\_min   & 1.596e-03 &   395 &  177 &  7 \\
+      \bottomrule
     \end{tabular}
   \end{table}
-  
   \begin{table}[H]
     \centering
     \small
-    \setlength{\tabcolsep}{2.8pt}
-    \caption{Resultados de pruebas \textbf{sin} restricciones redundantes (reunión).}
+    \setlength{\tabcolsep}{1.8pt}
+    \caption{Resultados de pruebas \textbf{sin} restricciones de simetría.}
     \label{tab:pruebas-reunion-off}
     \begin{tabular}{l l l l r r r r}
       \toprule
       \textbf{Archivo} & \textbf{Solver} & \textbf{Var heur} & \textbf{Val heur} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} \\
+      \midrule
+      test\_01 & chuffed & dom\_w\_deg  & indomain\_split & 2.400e-02 &  1055 &  273 & 13 \\
+      test\_02 & chuffed & dom\_w\_deg  & indomain\_split & 3.000e-03 &   112 &  105 &  8 \\
+      test\_03 & chuffed & dom\_w\_deg  & indomain\_split & 8.000e-03 &   645 &  526 &  9 \\
+      \midrule
+      test\_01 & chuffed & first\_fail  & indomain\_min   & 1.800e-02 &   180 &  180 &  3 \\
+      test\_02 & chuffed & first\_fail  & indomain\_min   & 3.000e-03 &   157 &  157 &  3 \\
+      test\_03 & chuffed & first\_fail  & indomain\_min   & 4.000e-03 &   189 &  188 &  7 \\
+      \midrule
+      test\_01 & gecode  & dom\_w\_deg  & indomain\_split & 1.438e-03 &   355 &  178 &  8 \\
+      test\_02 & gecode  & dom\_w\_deg  & indomain\_split & 2.777e-03 &  1103 &  544 & 12 \\
+      test\_03 & gecode  & dom\_w\_deg  & indomain\_split & 1.774e-03 &   263 &   90 & 11 \\
+      \midrule
+      test\_01 & gecode  & first\_fail  & indomain\_min   & 7.473e-02 & 31331 & 15666 &  6 \\
+      test\_02 & gecode  & first\_fail  & indomain\_min   & 3.032e-03 &  1103 &  544 &  7 \\
+      test\_03 & gecode  & first\_fail  & indomain\_min   & 3.170e-03 &   429 &  173 &  8 \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+
+  \begin{table}[H]
+    \centering
+    \small
+    \setlength{\tabcolsep}{1.8pt}
+    \caption{Resultados de pruebas \textbf{con} y \textbf{sin} restricciones redundantes.}
+    \label{tab:pruebas-reunion-redundancia}
+    \begin{tabular}{l l l r r r r r}
+      \toprule
+      \textbf{Archivo} & \textbf{Solver} & \textbf{Estrategia} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} & \textbf{Modo} \\
+      \midrule
+      test\_01 & chuffed & wdeg\_split & 2.100e-02 & 1055 & 273 & 13 & sin red. \\
+      test\_04 & chuffed & wdeg\_split & 0.000e+00 & 11 & 7 & 2 & sin red. \\
+      test\_01 & chuffed & ff\_min & 1.800e-02 & 180 & 180 & 3 & sin red. \\
+      test\_04 & chuffed & ff\_min & 0.000e+00 & 7 & 7 & 1 & sin red. \\
+      \midrule
+      test\_01 & gecode & wdeg\_split & 2.057e-03 & 355 & 178 & 8 & sin red. \\
+      test\_04 & gecode & wdeg\_split & 1.480e-03 & 11 & 6 & 3 & sin red. \\
+      test\_01 & gecode & ff\_min & 6.857e-02 & 30981 & 15491 & 6 & sin red. \\
+      test\_04 & gecode & ff\_min & 2.768e-04 & 13 & 7 & 1 & sin red. \\
+      \midrule
+      test\_01 & chuffed & wdeg\_split & 0.000e+00 & 0 & 1 & 0 & con red. \\
+      test\_04 & chuffed & wdeg\_split & 0.000e+00 & 0 & 1 & 0 & con red. \\
+      test\_01 & chuffed & ff\_min & 0.000e+00 & 0 & 1 & 0 & con red. \\
+      test\_04 & chuffed & ff\_min & 0.000e+00 & 0 & 1 & 0 & con red. \\
+      \midrule
+      test\_01 & gecode & wdeg\_split & 2.897e-03 & 0 & 1 & 0 & con red. \\
+      test\_04 & gecode & wdeg\_split & 9.996e-05 & 0 & 1 & 0 & con red. \\
+      test\_01 & gecode & ff\_min & 9.808e-05 & 0 & 1 & 0 & con red. \\
+      test\_04 & gecode & ff\_min & 1.051e-04 & 0 & 1 & 0 & con red. \\
       \bottomrule
     \end{tabular}
   \end{table}

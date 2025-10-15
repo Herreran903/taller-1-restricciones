@@ -1,0 +1,34 @@
+CMD: minizinc --all-solutions --solver gecode --statistics --time-limit 60000 modelos/reunion/results/flat/test_02__gecode__ff_min.fzn
+
+% Generated FlatZinc statistics:
+%%%mzn-stat: paths=0
+%%%mzn-stat: flatIntVars=70
+%%%mzn-stat: flatIntConstraints=46
+%%%mzn-stat: method="satisfy"
+%%%mzn-stat: flatTime=0.0417138
+%%%mzn-stat-end
+PER_AT = array1d(1..24,[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]);
+----------
+PER_AT = array1d(1..24,[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13]);
+----------
+PER_AT = array1d(1..24,[12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]);
+----------
+PER_AT = array1d(1..24,[12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13]);
+----------
+==========
+%%%mzn-stat: initTime=0.000372083
+%%%mzn-stat: solveTime=0.00149508
+%%%mzn-stat: solutions=4
+%%%mzn-stat: variables=70
+%%%mzn-stat: propagators=24
+%%%mzn-stat: propagations=12077
+%%%mzn-stat: nodes=1019
+%%%mzn-stat: failures=506
+%%%mzn-stat: restarts=0
+%%%mzn-stat: peakDepth=7
+%%%mzn-stat-end
+%%%mzn-stat: nSolutions=4
+%%%mzn-stat-end
+
+
+--- STDERR ---
