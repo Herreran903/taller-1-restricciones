@@ -2,7 +2,8 @@
 Runner de experimentos MiniZinc (model-aware)
 ---------------------------------------------
 
-- Inyecta una lista de variables de decisión según el tipo de modelo (Sudoku / Reunión),
+- Inyecta una lista de variables de decisión según el tipo de modelo
+  (Sudoku / Reunión / Kakuro / Secuencia / Acertijo / Rectángulo),
   y sustituye la línea 'solve ... satisfy;' por una de tres estrategias de búsqueda
   claramente diferenciadas para análisis comparativo:
     1) ff_min       -> first_fail + indomain_min     (completa)
@@ -17,6 +18,8 @@ Notas:
 * Se evita referenciar símbolos inexistentes (p. ej., G) en la inyección.
 * Si la compilación o ejecución con la estrategia falla por identificadores indefinidos,
   se reintenta con el modelo original (sin inyección de solve).
+* Nuevo (ACERTIJO): si el modelo es 'acertijo' no requiere archivos .dzn. Se ejecuta el
+  modelo “tal cual”, cambiando únicamente la heurística/solver.
 """
 
 import argparse
@@ -29,11 +32,8 @@ import sys
 import glob
 import shutil
 import math
-from datetime import datetime
 from collections import defaultdict
 
-# ==============================================================
-# Detección y manipulación del modelo
 # ==============================================================
 
 # Localiza la primera línea 'solve ... satisfy;'
@@ -45,9 +45,13 @@ SOLVE_REGEX = re.compile(
 # Etiqueta explícita en cabecera (opcional):
 #   % MODEL_ID: sudoku
 #   % MODEL_ID: reunion
+#   % MODEL_ID: kakuro
+#   % MODEL_ID: secuencia
+#   % MODEL_ID: acertijo
+#   % MODEL_ID: rectangulo
 MODEL_ID_RE = re.compile(r"^\s*%+\s*MODEL_ID:\s*(\w+)", re.IGNORECASE | re.MULTILINE)
 
-# Heurísticas para detectar tipo de modelo
+# Heurísticas para detectar tipo de modelo (no exhaustivas)
 HINTS = {
     "sudoku": {
         "must": [re.compile(r"\barray\s*\[\s*S\s*,\s*S\s*\]\s*of\s*var\b.*:\s*X\b", re.DOTALL)],
@@ -60,45 +64,79 @@ HINTS = {
                  re.compile(r"\binverse\s*\(\s*POS_OF\s*,\s*PER_AT\s*\)")],
         "any":  [re.compile(r"\bNEXT\b"), re.compile(r"\bSEP\b"), re.compile(r"\bDIST\b")],
     },
+    # Kakuro (grilla x[Cols,Rows], máscara white[Cols,Rows]) — ahora usa SEARCH_VARS
+    "kakuro": {
+        "must": [
+            re.compile(r"\barray\s*\[[^\]]+\]\s*of\s*var\b.*:\s*x\b", re.IGNORECASE | re.DOTALL),
+            re.compile(r"\barray\s*\[[^\]]+\]\s*of\s*int\b.*:\s*white\b", re.IGNORECASE | re.DOTALL),
+        ],
+        "any": [re.compile(r"\bCols\b"), re.compile(r"\bRows\b"), re.compile(r"\bint_lin_\w+\b")],
+    },
+    # Secuencia: vector 1D de decisión llamado x
+    "secuencia": {
+        "must": [re.compile(r"\barray\s*\[[^\]]+\]\s*of\s*var\b.*:\s*x\b", re.IGNORECASE | re.DOTALL)],
+        "any":  [re.compile(r"\bx\["), re.compile(r"\ball_different|\bint_lin_")],
+    },
+    # Acertijo: vector 1D de decisión llamado vars
+    "acertijo": {
+        "must": [re.compile(r"\barray\s*\[[^\]]+\]\s*of\s*var\b.*:\s*vars\b", re.IGNORECASE | re.DOTALL)],
+        "any":  [re.compile(r"\bvars\["), re.compile(r"\ball_different|\bint_lin_")],
+    },
+    # Rectángulo: el modelo expone un vector de búsqueda llamado SEARCH_VARS
+    "rectangulo": {
+        "must": [re.compile(r"\barray\s*\[[^\]]+\]\s*of\s*var\b.*:\s*SEARCH_VARS\b", re.IGNORECASE | re.DOTALL)],
+        "any":  [re.compile(r"\bSEARCH_VARS\[")],
+    },
 }
 
-# Señales de lista de branching ya definida
-HAS_DECISION = re.compile(r"\bDECISION_VARS\b")
-HAS_BRANCH   = re.compile(r"\bBRANCH_VARS\b")
+# Señales de lista de branching ya definida (case-insensitive)
+def pick_existing_branch_name(model_text: str) -> str | None:
+    """
+    Si el modelo define una lista de branching conocida, devuelve su nombre
+    tal como aparece en el modelo (preserva capitalización).
+    Busca SEARCH_VARS, DECISION_VARS y BRANCH_VARS (case-insensitive).
+    """
+    for label in ("SEARCH_VARS", "DECISION_VARS", "BRANCH_VARS"):
+        m = re.search(rf"\b({label})\b", model_text, re.IGNORECASE)
+        if m:
+            return model_text[m.start():m.end()]
+    return None
 
 def detect_model_kind(model_text: str) -> str:
-    """Devuelve 'sudoku' | 'reunion' | 'unknown' según etiqueta o heurística."""
+    """Devuelve 'sudoku' | 'reunion' | 'kakuro' | 'secuencia' | 'acertijo' | 'rectangulo' | 'unknown'."""
     m = MODEL_ID_RE.search(model_text)
     if m:
         tag = m.group(1).strip().lower()
-        if tag in ("sudoku", "reunion"):
+        if tag in ("sudoku", "reunion", "kakuro", "secuencia", "acertijo", "rectangulo"):
             return tag
     for kind, patt in HINTS.items():
         if all(rx.search(model_text) for rx in patt["must"]) and any(rx.search(model_text) for rx in patt["any"]):
             return kind
     return "unknown"
 
-def pick_existing_branch_name(model_text: str) -> str | None:
-    """Si el modelo define una lista de branching conocida, devuelve su nombre."""
-    if HAS_DECISION.search(model_text): return "DECISION_VARS"
-    if HAS_BRANCH.search(model_text):   return "BRANCH_VARS"
-    return None
-
 def ensure_branch_vars(model_text: str, kind: str) -> tuple[str, str | None]:
     """
     Garantiza una lista 1D de variables de ramificación:
-    - Reusa DECISION_VARS/BRANCH_VARS si existen.
-    - Para Sudoku, detecta si G está declarado y filtra por G[r,c]==0 sólo si existe.
-    - Inserta justo antes de la primera línea 'solve'.
-    - Si no puede, devuelve (texto_original, None).
+    - Reusa SEARCH_VARS / DECISION_VARS / BRANCH_VARS si existen.
+    - Sudoku: X[r,c] (filtra por G[r,c]==0 si G existe) -> DECISION_VARS.
+    - Reunión: POS_OF[p] -> DECISION_VARS.
+    - Kakuro: x[c,r] en celdas white -> SEARCH_VARS (cambio pedido).
+    - Secuencia: x[i] -> DECISION_VARS.
+    - Acertijo: vars[i] -> DECISION_VARS.
+    - Rectángulo: si existe SEARCH_VARS declarado, se usa tal cual (no se inyecta otra lista).
+    - Inserta justo antes de la primera línea 'solve' cuando corresponda.
     """
+    # Si ya existe alguna lista conocida, reusar su nombre exacto
     name = pick_existing_branch_name(model_text)
     if name:
         return model_text, name
 
+    # Localizar primera 'solve'
     m = SOLVE_REGEX.search(model_text)
     if not m:
         return model_text, None
+
+    snippet = None
 
     if kind == "sudoku":
         has_G = bool(re.search(r"^\s*(?:array\s*\[.*\]\s*of\s*)?int\s*:\s*G\b", model_text, re.MULTILINE))
@@ -130,41 +168,85 @@ def ensure_branch_vars(model_text: str, kind: str) -> tuple[str, str | None]:
         )
         name = "DECISION_VARS"
 
-    else:
+    elif kind == "kakuro":
+        # Cambio solicitado: usar SEARCH_VARS
+        snippet = (
+            "% === Inyectado por runner: SEARCH_VARS (Kakuro) ===\n"
+            "array[int] of var 0..9: SEARCH_VARS =\n"
+            "  [ x[c,r] |\n"
+            "    c in Cols,\n"
+            "    r in Rows\n"
+            "    where white[c,r] = 1\n"
+            "  ];\n"
+        )
+        name = "SEARCH_VARS"
+
+    elif kind == "secuencia":
+        snippet = (
+            "% === Inyectado por runner: DECISION_VARS (Secuencia) ===\n"
+            "array[int] of var int: DECISION_VARS =\n"
+            "  [ x[i] |\n"
+            "    i in index_set_1_of_1(x)\n"
+            "  ];\n"
+        )
+        name = "DECISION_VARS"
+
+    elif kind == "acertijo":
+        snippet = (
+            "% === Inyectado por runner: DECISION_VARS (Acertijo) ===\n"
+            "array[int] of var int: DECISION_VARS =\n"
+            "  [ vars[i] |\n"
+            "    i in index_set_1_of_1(vars)\n"
+            "  ];\n"
+        )
+        name = "DECISION_VARS"
+
+    elif kind == "rectangulo":
+        # No inyectamos nada: se asume que el modelo define SEARCH_VARS.
+        has_search = bool(re.search(r"\barray\s*\[[^\]]+\]\s*of\s*var\b.*:\s*SEARCH_VARS\b",
+                                    model_text, re.IGNORECASE | re.DOTALL))
+        if has_search:
+            return model_text, "SEARCH_VARS"
+        # Si no existe, no arriesgamos a inventar; devolvemos sin cambios.
         return model_text, None
 
+    else:
+        # Heurístico Kakuro-like → ahora también en SEARCH_VARS
+        has_x = bool(re.search(r"\barray\s*\[[^\]]+\]\s*of\s*var\b.*:\s*x\b", model_text, re.IGNORECASE | re.DOTALL))
+        has_white = bool(re.search(r"\barray\s*\[[^\]]+\]\s*of\s*int\b.*:\s*white\b", model_text, re.IGNORECASE | re.DOTALL))
+        if has_x and has_white:
+            snippet = (
+                "% === Inyectado por runner: SEARCH_VARS (Kakuro-like) ===\n"
+                "array[int] of var 0..9: SEARCH_VARS =\n"
+                "  [ x[c,r] |\n"
+                "    c in Cols,\n"
+                "    r in Rows\n"
+                "    where white[c,r] = 1\n"
+                "  ];\n"
+            )
+            name = "SEARCH_VARS"
+        else:
+            return model_text, None
+
+    # Insertar justo antes de la primera línea 'solve'
     i = m.start()
     patched = model_text[:i] + snippet + model_text[i:]
     return patched, name
 
 # ==============================================================
-# Estrategias de búsqueda
-# ==============================================================
 
 # Tres estrategias diferenciadas (sin 'default'):
-# - ff_min      : first_fail (var) + indomain_min (val)
-# - wdeg_split  : dom_w_deg  (var) + indomain_split (val)
-# - inorder_min : input_order (var) + indomain_min (val)
-
+_SOLVE_LINE = "solve :: int_search({VARS}, {VARH}, {VALH}, complete) satisfy;"
 SOLVE_TEMPLATES_BY_MODEL = {
-    "sudoku": {
-        "ff_min":      "solve :: int_search({VARS}, first_fail,   indomain_min,   complete) satisfy;",
-        "wdeg_split":  "solve :: int_search({VARS}, dom_w_deg,    indomain_split, complete) satisfy;",
-        "inorder_min": "solve :: int_search({VARS}, input_order,  indomain_min,   complete) satisfy;",
-    },
-    "reunion": {
-        "ff_min":      "solve :: int_search({VARS}, first_fail,   indomain_min,   complete) satisfy;",
-        "wdeg_split":  "solve :: int_search({VARS}, dom_w_deg,    indomain_split, complete) satisfy;",
-        "inorder_min": "solve :: int_search({VARS}, input_order,  indomain_min,   complete) satisfy;",
-    },
-    "unknown": {
-        "ff_min":      "solve :: int_search({VARS}, first_fail,   indomain_min,   complete) satisfy;",
-        "wdeg_split":  "solve :: int_search({VARS}, dom_w_deg,    indomain_split, complete) satisfy;",
-        "inorder_min": "solve :: int_search({VARS}, input_order,  indomain_min,   complete) satisfy;",
-    },
+    kind: {
+        "ff_min":      _SOLVE_LINE.format(VARS="{VARS}", VARH="first_fail",  VALH="indomain_min"),
+        "wdeg_split":  _SOLVE_LINE.format(VARS="{VARS}", VARH="dom_w_deg",   VALH="indomain_split"),
+        "inorder_min": _SOLVE_LINE.format(VARS="{VARS}", VARH="input_order", VALH="indomain_min"),
+        "inorder_split": _SOLVE_LINE.format(VARS="{VARS}", VARH="input_order", VALH="indomain_split"),
+    }
+    for kind in ("sudoku", "reunion", "kakuro", "secuencia", "acertijo", "rectangulo", "unknown")
 }
 
-# Alias de compatibilidad
 STRAT_ALIASES = {
     "domdeg_split": "wdeg_split",
 }
@@ -176,7 +258,7 @@ def normalize_strategy_name(s: str) -> str:
 def inject_solve_by_kind(model_text: str, strategy: str, kind: str) -> str:
     """
     Sustituye la línea 'solve ... satisfy;' según la estrategia pedida.
-    - Asegura DECISION_VARS según el tipo de modelo.
+    - Asegura la lista de branching adecuada (SEARCH_VARS/DECISION_VARS según el modelo).
     - Si no puede asegurar variables de ramificación, devuelve el texto original.
     """
     strategy = normalize_strategy_name(strategy)
@@ -184,9 +266,10 @@ def inject_solve_by_kind(model_text: str, strategy: str, kind: str) -> str:
     if strategy not in templates:
         return model_text
 
-    # Asegurar la lista de branching
+    # Asegurar la lista de branching (intenta inyectar si no existe)
     txt, varname = ensure_branch_vars(model_text, kind)
     if varname is None:
+        # No podemos inyectar; devolvemos el texto original
         return model_text
 
     if not SOLVE_REGEX.search(txt):
@@ -195,8 +278,6 @@ def inject_solve_by_kind(model_text: str, strategy: str, kind: str) -> str:
     solve_line = templates[strategy].format(VARS=varname)
     return SOLVE_REGEX.sub(solve_line, txt, count=1)
 
-# ==============================================================
-# Utilidades de estadísticas y selección
 # ==============================================================
 
 def format_time_sci(t, digits=3):
@@ -235,10 +316,12 @@ def parse_stats(mzn_text: str):
 
     for k in ["time", "initTime", "solveTime"]:
         cast_float(k)
-    for k in ["nodes", "failures", "solutions", "restarts", "peakDepth", "variables", "constraints", "fail"]:
+    for k in ["nodes", "failures", "solutions", "restarts", "peakDepth", "variables", "constraints", "fail", "nSolutions"]:
         cast_int(k)
     if "failures" not in stats and "fail" in stats:
         stats["failures"] = stats["fail"]
+    if "solutions" not in stats and "nSolutions" in stats:
+        stats["solutions"] = stats["nSolutions"]
 
     return stats
 
@@ -282,9 +365,10 @@ def iqr_fences(values, k=1.5):
     if len(values) < 4:
         return (None, None)
     vs = sorted(values)
-    mid = len(vs) // 2
+    n = len(vs)
+    mid = n // 2
     lower = vs[:mid]
-    upper = vs[mid + 1:] if len(vs) % 2 == 1 else vs[mid:]
+    upper = vs[mid + 1:] if n % 2 == 1 else vs[mid:]
     def median(a):
         m = len(a) // 2
         return (a[m] + a[~m]) / 2 if len(a) % 2 == 0 else a[m]
@@ -368,6 +452,7 @@ def shortlist_from_rows(rows, topk=2, delta=1.5, iqr_k=1.5):
                 nmin = min(g, key=lambda r: r.get("nodes", float("inf")))
                 nmax = max(g, key=lambda r: r.get("nodes", -1))
                 shortlisted.append((nmin, f"solver-gap-nodes({ratio(nodes):.2f}x)"))
+                shortlisted.append((nmax, f"solver-gap-nodes({ratio(nodes):.2f}x)"))
 
     # De-duplicación por (file, solver, strategy)
     seen = set()
@@ -394,7 +479,7 @@ def emit_latex_table(rows, path, caption="Shortlist de corridas interesantes", l
     lines.append(f"  \\label{{{label}}}")
     lines.append("  \\begin{tabular}{l l l l r r r r r l}")
     lines.append("    \\hline")
-    lines.append("    " + " & ".join([f"\\textbf{{{h}}}" for h in header]) + " \\\\")
+    lines.append("    " + " & ".join([f'\\textbf{{{h}}}' for h in header]) + " \\\\")
     lines.append("    \\hline")
     for r in rows:
         vals = [r.get(k, "") for k in cols]
@@ -467,8 +552,6 @@ def audit_redundancy_in_fzn(fzn_path: str) -> dict:
     }
 
 # ==============================================================
-# Main
-# ==============================================================
 
 def main():
     ap = argparse.ArgumentParser(description="Runner de experimentos para modelos MiniZinc (con inyección de estrategias).")
@@ -478,10 +561,10 @@ def main():
     ap.add_argument("--data-dir", required=True, help="Directorio con .dzn (relativa a base-dir si no es absoluta)")
     # Solvers y estrategias
     ap.add_argument("--solver", nargs="+", default=["gecode", "chuffed"], help="Lista de solvers (p. ej., gecode chuffed)")
-    ap.add_argument("--strategy", nargs="+", default=["ff_min", "wdeg_split", "inorder_min"],
+    ap.add_argument("--strategy", nargs="+", default=["ff_min", "wdeg_split", "inorder_min", "inorder_split"],
                     help="Estrategias: ff_min | wdeg_split (alias: domdeg_split) | inorder_min")
     ap.add_argument("--time-limit", type=int, default=60000, help="Límite de tiempo en ms para minizinc")
-    # NUEVO: enumerar todas las soluciones
+    # Enumerar todas las soluciones (opcional)
     ap.add_argument("--all-solutions", action="store_true", default=False,
                     help="Enumerar todas las soluciones (no detener en la primera)")
     # Salidas
@@ -505,11 +588,17 @@ def main():
         model_text = f.read()
     model_kind = detect_model_kind(model_text)
 
-    # Enumerar instancias .dzn
-    data_files = sorted(glob.glob(os.path.join(rel(args.data_dir), "*.dzn")))
+    # Enumerar instancias .dzn (para 'acertijo' son opcionales)
+    data_glob_dir = rel(args.data_dir)
+    data_files = sorted(glob.glob(os.path.join(data_glob_dir, "*.dzn")))
     if not data_files:
-        print("No se encontraron archivos .dzn en", rel(args.data_dir), file=sys.stderr)
-        sys.exit(2)
+        if model_kind == "acertijo":
+            # Ejecutamos sin .dzn (solo cambia solver/heurística)
+            data_files = [None]
+            print("[INFO] Modelo 'acertijo' sin .dzn: se ejecutará únicamente el .mzn (sin datos).")
+        else:
+            print("No se encontraron archivos .dzn en", data_glob_dir, file=sys.stderr)
+            sys.exit(2)
 
     # Directorios de salida
     out_csv_path = rel(args.out)
@@ -523,7 +612,7 @@ def main():
     norm_strategies = []
     for s in args.strategy:
         ns = normalize_strategy_name(s)
-        if ns not in ("ff_min", "wdeg_split", "inorder_min"):
+        if ns not in ("ff_min", "wdeg_split", "inorder_min", "indom-split", "inorder_split"):
             print(f"[WARN] estrategia '{s}' no soportada; se ignora.", file=sys.stderr)
             continue
         norm_strategies.append(ns)
@@ -552,28 +641,34 @@ def main():
             # Archivo temporal del modelo inyectado
             tmpm_path = None
             try:
-                with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpm:
+                with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False, encoding="utf-8") as tmpm:
                     tmpm.write(mod_txt)
                     tmpm.flush()
                     tmpm_path = tmpm.name
 
-                # (Opcional) Conteo de DECISION_VARS
-                if "DECISION_VARS" in mod_txt:
+                # (Opcional) Conteo de lista de branching: prueba con primera instancia (o sin dzn si acertijo)
+                if re.search(r"\b(SEARCH_VARS|DECISION_VARS|BRANCH_VARS)\b", mod_txt, re.IGNORECASE):
                     tmpc_path = None
                     try:
-                        with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False) as tmpc:
+                        with tempfile.NamedTemporaryFile("w", suffix=".mzn", delete=False, encoding="utf-8") as tmpc:
                             tmpc.write(mod_txt + "\n")
-                            tmpc.write('output ["#DECISION_VARS=", show(length(DECISION_VARS)), "\\n"];')
+                            tmpc.write(
+                                'output ["#BRANCH_LIST=", '
+                                'show(if exists(SEARCH_VARS) then length(SEARCH_VARS) '
+                                'else if exists(DECISION_VARS) then length(DECISION_VARS) else 0 endif), "\\n"];'
+                            )
                             tmpc.flush()
                             tmpc_path = tmpc.name
-                        preview_proc = subprocess.run(
-                            ["minizinc", "--solver", solver, "--time-limit", "1000", tmpc_path, data_files[0]],
-                            capture_output=True, text=True
-                        )
+
+                        df0 = data_files[0]
+                        cmd_preview = ["minizinc", "--solver", solver, "--time-limit", "1000", tmpc_path]
+                        if df0:
+                            cmd_preview.append(df0)
+                        preview_proc = subprocess.run(cmd_preview, capture_output=True, text=True)
                         if preview_proc.returncode == 0:
-                            mcount = re.search(r"#DECISION_VARS=\s*(\d+)", preview_proc.stdout)
+                            mcount = re.search(r"#BRANCH_LIST=\s*(\d+)", preview_proc.stdout)
                             if mcount:
-                                print(f"[DEBUG] {solver}/{strat}: DECISION_VARS size = {mcount.group(1)}")
+                                print(f"[DEBUG] {solver}/{strat}: BRANCH_LIST size = {mcount.group(1)}")
                     except Exception:
                         pass
                     finally:
@@ -581,14 +676,22 @@ def main():
                             try: os.unlink(tmpc_path)
                             except Exception: pass
 
-                # Compilar y ejecutar cada instancia
+                # Compilar y ejecutar cada instancia (o sin instancia si acertijo)
                 for data_path in data_files:
-                    base = os.path.splitext(os.path.basename(data_path))[0]
+                    if data_path:
+                        base = os.path.splitext(os.path.basename(data_path))[0]
+                    else:
+                        base = os.path.splitext(os.path.basename(model_path))[0] + "__nodzn"
+
                     tag  = f"{base}__{solver}__{strat}"
 
                     # Compilación a FlatZinc
                     fzn_path = os.path.join(fzn_dir, f"{tag}.fzn")
-                    cmd_compile = ["minizinc", "--solver", solver, "-c", tmpm_path, data_path, "-o", fzn_path]
+                    cmd_compile = ["minizinc", "--solver", solver, "-c", tmpm_path]
+                    if data_path:
+                        cmd_compile.append(data_path)
+                    cmd_compile.extend(["-o", fzn_path])
+
                     proc_c = subprocess.run(cmd_compile, capture_output=True, text=True)
                     stdout_c, stderr_c, rc_c = proc_c.stdout, proc_c.stderr, proc_c.returncode
 
@@ -596,7 +699,10 @@ def main():
                     if rc_c != 0 and ("undefined identifier" in (stdout_c + stderr_c).lower()):
                         print(f"[WARN] {solver}/{strat}: recompilo con modelo original (identificador indefinido).", file=sys.stderr)
                         fzn_path = os.path.join(fzn_dir, f"{tag}.orig.fzn")
-                        cmd_compile2 = ["minizinc", "--solver", solver, "-c", model_path, data_path, "-o", fzn_path]
+                        cmd_compile2 = ["minizinc", "--solver", solver, "-c", model_path]
+                        if data_path:
+                            cmd_compile2.append(data_path)
+                        cmd_compile2.extend(["-o", fzn_path])
                         proc_c2 = subprocess.run(cmd_compile2, capture_output=True, text=True)
                         stdout_c, stderr_c, rc_c = proc_c2.stdout, proc_c2.stderr, proc_c2.returncode
 
@@ -626,13 +732,13 @@ def main():
                     # Ejecución con estadísticas
                     cmd = ["minizinc", "--solver", solver, "--statistics", "--time-limit", str(args.time_limit), fzn_path]
                     if args.all_solutions:
-                        # Colocarlo al inicio tras 'minizinc' para evitar rarezas con el parser
                         cmd.insert(1, "--all-solutions")
 
                     proc = subprocess.run(cmd, capture_output=True, text=True)
                     stdout, stderr, rc = proc.stdout, proc.stderr, proc.returncode
 
                     # Guardar artefactos de salida
+                    runs_dir = rel("results/artifacts")
                     with open(os.path.join(runs_dir, f"{tag}.sol.txt"), "w", encoding="utf-8") as fsol:
                         fsol.write(stdout)
                     with open(os.path.join(runs_dir, f"{tag}.log.txt"), "w", encoding="utf-8") as flog:
@@ -664,7 +770,6 @@ def main():
                           f"time={tsec}, nodes={stats.get('nodes')}, failures={stats.get('failures')}")
 
             finally:
-                # Limpieza de temporal del modelo
                 if tmpm_path:
                     try: os.unlink(tmpm_path)
                     except Exception: pass
