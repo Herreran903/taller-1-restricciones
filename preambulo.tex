@@ -5,6 +5,19 @@
 \usepackage{lmodern}
 \usepackage{microtype}
 
+% --- Tamaño de fuente global (si no puedes cambiar \documentclass[9pt]{...}) ---
+% Ajusta aquí el tamaño base. Ej.: 9pt con interlínea ~10.5pt.
+\AtBeginDocument{\fontsize{9}{10.5}\selectfont} % cambia a 10/12 si lo exigen
+
+% --- Márgenes compactos ---
+\usepackage{geometry}
+\geometry{
+  a4paper,                       % o 'letterpaper' si usas carta
+  top=1.6cm, bottom=1.8cm,
+  left=1.6cm, right=1.6cm,
+  headheight=12pt, headsep=10pt, footskip=18pt
+}
+
 % --- Gráficos ---
 \usepackage{graphicx}
 \graphicspath{{figuras/}{figs/}}
@@ -15,7 +28,7 @@
 \usepackage{siunitx}
 \sisetup{
   detect-all,
-  output-decimal-marker = {.},   % separador decimal en español: coma o punto (ajusta si prefieres coma)
+  output-decimal-marker = {.},   % separador decimal en español: {,} si prefieres coma
   group-separator = {\,},
   group-minimum-digits = 4
 }
@@ -25,7 +38,12 @@
 \usepackage[font=small,labelfont=bf,skip=6pt]{caption}
 \usepackage[section]{placeins}            % \FloatBarrier automático al cambiar de sección
 
-% Entorno opcional para compactar espacio alrededor de floats
+% Espacios globales un poco más compactos para floats
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+
+% Entorno opcional para compactar espacio alrededor de floats (tu versión original)
 \newenvironment{compactfloats}{%
   \begingroup
   \setlength{\textfloatsep}{6pt plus 2pt minus 2pt}%
@@ -65,3 +83,26 @@
 \newcommand{\figref}[1]{\Cref{#1}}
 \newcommand{\secref}[1]{\Cref{#1}}
 \newcommand{\tabref}[1]{\Cref{#1}}
+
+% --- Compactación adicional de texto/ecuaciones (opcional pero útil) ---
+\linespread{0.96}              % interlínea un poco más cerrada (0.95–0.98)
+\setlength{\parskip}{0.2em}    % espacio entre párrafos
+\setlength{\parindent}{12pt}   % sangría de párrafo
+
+% Menos aire vertical alrededor de ecuaciones en display
+\makeatletter
+\g@addto@macro\normalsize{%
+  \setlength\abovedisplayskip{7pt}%
+  \setlength\belowdisplayskip{7pt}%
+  \setlength\abovedisplayshortskip{5pt}%
+  \setlength\belowdisplayshortskip{5pt}%
+}
+\makeatother
+
+% --- (Opcional) Listas más cerradas y títulos compactos ---
+\usepackage{enumitem}
+\setlist{nosep, leftmargin=*, itemsep=2pt, topsep=4pt, parsep=0pt, partopsep=0pt}
+\usepackage[small,bf]{titlesec}
+\titlespacing*{\section}{0pt}{8pt plus 2pt minus 2pt}{4pt}
+\titlespacing*{\subsection}{0pt}{6pt plus 2pt minus 2pt}{3pt}
+\titlespacing*{\subsubsection}{0pt}{4pt plus 1pt minus 1pt}{2pt}
