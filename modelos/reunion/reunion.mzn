@@ -64,21 +64,21 @@ constraint
 
 % ----------------------- Redundantes ---------------------------
 % Evita que una persona aparezca en demasiadas relaciones NEXT
-% constraint forall(p in S)(
-%   sum([ bool2int(p == NEXT[i,1] \/ p == NEXT[i,2]) | i in 1..K_NEXT ]) <= 2
-% );
+constraint forall(p in S)(
+  sum([ bool2int(p == NEXT[i,1] \/ p == NEXT[i,2]) | i in 1..K_NEXT ]) <= 2
+);
 
-% % Evita pares que sean a la vez NEXT y SEPARATE
-% constraint
-% forall(i in 1..K_NEXT, j in 1..K_SEP)(
-%   not (
-%     (NEXT[i,1] == SEP[j,1] /\ NEXT[i,2] == SEP[j,2]) \/
-%     (NEXT[i,1] == SEP[j,2] /\ NEXT[i,2] == SEP[j,1])
-%   )
-% );
+% Evita pares que sean a la vez NEXT y SEPARATE
+constraint
+forall(i in 1..K_NEXT, j in 1..K_SEP)(
+  not (
+    (NEXT[i,1] == SEP[j,1] /\ NEXT[i,2] == SEP[j,2]) \/
+    (NEXT[i,1] == SEP[j,2] /\ NEXT[i,2] == SEP[j,1])
+  )
+);
 
 % ----------------------- Simetría ------------
-% constraint PER_AT[1] < PER_AT[N];
+constraint PER_AT[1] < PER_AT[N];
 
 % ----------------------- Búsqueda -------------------------------
 % [H1] Heurística 1 — clásica y estable
@@ -88,7 +88,7 @@ constraint
 solve :: int_search(POS_OF, dom_w_deg, indomain_split, complete) satisfy;
 
 % [D] Default del solver (sin anotación)
-% solve satisfy;
+solve satisfy;
 
 % ----------------------- Salida --------------------------------
 output
