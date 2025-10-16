@@ -1,4 +1,73 @@
 % !TEX root = ../../main.tex
 
 \subsection{Pruebas}\label{sec:03-secuencia-magica-pruebas}
-Casos de prueba, entradas, métricas y tablas o figuras de apoyo.
+Se usaron 3 pruebas, n = {6, 50, 100} (archivos \texttt{test\_01}, \texttt{test\_02} y \texttt{test\_03}). Cada una se corrió con 2 solvers (\textit{Gecode} y \textit{Chuffed}) y 3 heurísticas de variable de decisión.
+
+\begin{compactfloats}
+\begin{table}[H]
+  \centering
+  \small
+  \setlength{\tabcolsep}{10.8pt}
+  \caption{Resultados de pruebas \textbf{con} restricciones redundantes (formato compatible).}
+  \label{tab:pruebas-secuencia}
+  \begin{tabular}{l l l l l r r r}
+    \toprule
+    \textbf{Archivo} & \textbf{Solver} & \textbf{Var heur} & \textbf{Val heur} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} \\
+    \midrule
+    test\_01 & Gecode  & first\_fail  & indomain\_min   & 1.63E-03 & 7   & 4   & 3  \\
+    test\_01 & Gecode  & input\_order & indomain\_min   & 5.67E-04 & 11  & 6   & 1  \\
+    test\_01 & Gecode  & input\_order & indomain\_split & 7.31E-04 & 7   & 4   & 2  \\
+    test\_01 & Chuffed & first\_fail  & indomain\_min   & 3.00E-03 & 4   & 4   & 3  \\
+    test\_01 & Chuffed & input\_order & indomain\_min   & 2.00E-03 & 6   & 6   & 1  \\
+    test\_01 & Chuffed & input\_order & indomain\_split & 3.00E-03 & 4   & 4   & 1  \\
+    \midrule
+    test\_02 & Gecode  & first\_fail  & indomain\_min   & 1.76E-03 & 31  & 5   & 25 \\
+    test\_02 & Gecode  & input\_order & indomain\_min   & 2.32E-03 & 94  & 46  & 1  \\
+    test\_02 & Gecode  & input\_order & indomain\_split & 1.49E-03 & 46  & 22  & 5  \\
+    test\_02 & Chuffed & first\_fail  & indomain\_min   & 7.70E-02 & 78  & 8   & 25 \\
+    test\_02 & Chuffed & input\_order & indomain\_min   & 6.90E-02 & 48  & 46  & 1  \\
+    test\_02 & Chuffed & input\_order & indomain\_split & 6.40E-02 & 25  & 22  & 4  \\
+    \midrule
+    test\_03 & Gecode  & first\_fail  & indomain\_min   & 3.70E-03 & 56  & 5   & 50 \\
+    test\_03 & Gecode  & input\_order & indomain\_min   & 4.33E-03 & 194 & 96  & 1  \\
+    test\_03 & Gecode  & input\_order & indomain\_split & 4.27E-03 & 96  & 47  & 6  \\
+    test\_03 & Chuffed & first\_fail  & indomain\_min   & 2.42E-01 & 166 & 8   & 50 \\
+    test\_03 & Chuffed & input\_order & indomain\_min   & 2.37E-01 & 98  & 96  & 1  \\
+    test\_03 & Chuffed & input\_order & indomain\_split & 2.62E-01 & 53  & 47  & 5  \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \small
+  \setlength{\tabcolsep}{10.8pt}
+  \caption{Resultados de pruebas \textbf{sin} restricciones redundantes (formato compatible).}
+  \label{tab:pruebas-secuencia-off}
+  \begin{tabular}{l l l l l r r r}
+    \toprule
+    \textbf{Archivo} & \textbf{Solver} & \textbf{Var heur} & \textbf{Val heur} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} \\
+    \midrule
+    test\_01 & Gecode  & first\_fail  & indomain\_min   & 6.55E-04 & 29   & 15  & 4 \\
+    test\_01 & Gecode  & input\_order & indomain\_min   & 9.83E-03 & 23   & 12  & 4 \\
+    test\_01 & Gecode  & input\_order & indomain\_split & 6.61E-04 & 19   & 10  & 4 \\
+    test\_01 & Chuffed & first\_fail  & indomain\_min   & 9.00E-03 & 15   & 15  & 3 \\
+    test\_01 & Chuffed & input\_order & indomain\_min   & 1.00E-02 & 12   & 12  & 2 \\
+    test\_01 & Chuffed & input\_order & indomain\_split & 1.00E-02 & 11   & 10  & 3 \\
+    \midrule
+    test\_02 & Gecode  & first\_fail  & indomain\_min   & 1.90E-01 & 2733 & 1364 & 26 \\
+    test\_02 & Gecode  & input\_order & indomain\_min   & 1.10E-01 & 367  & 182  & 4  \\
+    test\_02 & Gecode  & input\_order & indomain\_split & 3.00E-02 & 265  & 129  & 8  \\
+    test\_02 & Chuffed & first\_fail  & indomain\_min   & 2.70E-01 & 1412 & 1406 & 26 \\
+    test\_02 & Chuffed & input\_order & indomain\_min   & 2.50E-01 & 185  & 182  & 2  \\
+    test\_02 & Chuffed & input\_order & indomain\_split & 1.50E-01 & 142  & 130  & 7  \\
+    \midrule
+    test\_03 & Gecode  & first\_fail  & indomain\_min   & 4.88     & 10533 & 5264 & 51 \\
+    test\_03 & Gecode  & input\_order & indomain\_min   & 2.80     & 767   & 382  & 4  \\
+    test\_03 & Gecode  & input\_order & indomain\_split & 4.00E-01 & 568   & 280  & 9  \\
+    test\_03 & Chuffed & first\_fail  & indomain\_min   & 3.58     & 5362  & 5356 & 51 \\
+    test\_03 & Chuffed & input\_order & indomain\_min   & 2.43     & 385   & 382  & 2  \\
+    test\_03 & Chuffed & input\_order & indomain\_split & 1.57     & 291   & 277  & 8  \\
+    \bottomrule
+  \end{tabular}
+\end{table}

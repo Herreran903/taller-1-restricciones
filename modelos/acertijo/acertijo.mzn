@@ -47,10 +47,16 @@ array[int] of var int: vars =
  ++ [ edad[n]     | n in NOMBRE ];
 
 % ----------------------- Búsqueda -------------------------------
-solve :: int_search(
-          vars,
-          first_fail, indomain_min, complete
-       ) satisfy;
+% solve satisfy;
+
+% first_fail + indomain_min: elige la var con dominio más pequeño, prueba el menor valor y hace DFS completa (poda temprana).
+% solve :: int_search(vars, first_fail, indomain_min, complete) satisfy;
+
+% input_order + indomain_split: respeta el orden de x tal cual; en cada variable parte el dominio (mitad inferior primero) para forzar propagación; búsqueda completa (DFS).
+% solve :: int_search(vars, input_order, indomain_split, complete) satisfy;
+
+% input_order + indomain_min: sigue el orden de x tal cual, prueba el menor valor y hace DFS completa (control/reproducible).
+ solve :: int_search(vars, input_order, indomain_min, complete) satisfy;
 
 % ----------------------- Salida -------------------------------
 array[1..3] of string: ap_str = ["Gonzalez","Garcia","Lopez"];

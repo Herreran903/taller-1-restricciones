@@ -1,9 +1,7 @@
 % !TEX root = ../../main.tex
 
 \subsection{Análisis y conclusiones}\label{sec:03-secuencia-magica-analisis}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur at dui sed justo viverra ultrices. Integer a nisl id enim ornare dictum. Mauris non lectus vel turpis posuere tincidunt. In hac habitasse platea dictumst. Donec et urna non velit tempus vulputate.
 
-Suspendisse potenti. Phasellus lacinia, arcu et gravida pharetra, tortor nisl iaculis augue, eget porta libero sapien in odio. Sed imperdiet, turpis at facilisis varius, arcu velit aliquet justo, vitae convallis lorem ipsum id urna. Cras ut sem vel ex sagittis bibendum.
+Con las \textbf{restricciones redundantes} activadas el rendimiento mejora de forma drástica: los \emph{tiempos} pasan de segundos a \emph{milisegundos}, y el tamaño del árbol (\textit{nodes}/\textit{fail}) cae entre uno y dos órdenes de magnitud, además de reducirse la \emph{profundidad} (por ejemplo, en \texttt{test\_03} se evita llegar a profundidades $\sim$50). En este escenario, \textbf{Gecode} es consistentemente más rápido y estable que \textbf{Chuffed}. \emph{Sin} redundantes, ambos solvers sufren: aumentan \textit{nodes}/\textit{fail} y el tiempo crece notablemente (p.\,ej., \texttt{test\_02}/\texttt{test\_03}), aunque Gecode mantiene ventaja relativa. Estos resultados confirman que las redundantes no cambian la solución, pero \emph{podan} significativamente el espacio de búsqueda, mejorando la eficiencia global. Si se busca balance tiempo/nodos, la mejor opción es \textbf{Gecode} con \texttt{input\_order + indomain\_split}, reservando \texttt{first\_fail + indomain\_min} como alternativa competitiva.
 
-Praesent euismod, sapien a cursus molestie, risus metus feugiat lorem, vitae gravida enim felis id magna. Aliquam erat volutpat. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
 

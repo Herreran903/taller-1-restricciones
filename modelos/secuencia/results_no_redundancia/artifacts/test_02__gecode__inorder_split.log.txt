@@ -1,0 +1,27 @@
+CMD: minizinc --solver gecode --statistics --time-limit 60000 modelos/secuencia\results/flat\test_02__gecode__inorder_split.fzn
+
+% Generated FlatZinc statistics:
+%%%mzn-stat: paths=0
+%%%mzn-stat: flatIntVars=50
+%%%mzn-stat: flatIntConstraints=50
+%%%mzn-stat: method="satisfy"
+%%%mzn-stat: flatTime=0.0898776
+%%%mzn-stat-end
+X_INTRODUCED_0_ = array1d(1..50,[46, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]);
+----------
+%%%mzn-stat: initTime=0.0010685
+%%%mzn-stat: solveTime=0.0280087
+%%%mzn-stat: solutions=1
+%%%mzn-stat: variables=50
+%%%mzn-stat: propagators=50
+%%%mzn-stat: propagations=240662
+%%%mzn-stat: nodes=265
+%%%mzn-stat: failures=129
+%%%mzn-stat: restarts=0
+%%%mzn-stat: peakDepth=8
+%%%mzn-stat-end
+%%%mzn-stat: nSolutions=1
+%%%mzn-stat-end
+
+
+--- STDERR ---

@@ -1,0 +1,22 @@
+% Generated FlatZinc statistics:
+%%%mzn-stat: paths=0
+%%%mzn-stat: flatIntVars=50
+%%%mzn-stat: flatIntConstraints=50
+%%%mzn-stat: method="satisfy"
+%%%mzn-stat: flatTime=0.090214
+%%%mzn-stat-end
+X_INTRODUCED_0_ = array1d(1..50,[46, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]);
+----------
+%%%mzn-stat: initTime=0.0010598
+%%%mzn-stat: solveTime=0.18978
+%%%mzn-stat: solutions=1
+%%%mzn-stat: variables=50
+%%%mzn-stat: propagators=50
+%%%mzn-stat: propagations=2436181
+%%%mzn-stat: nodes=2733
+%%%mzn-stat: failures=1364
+%%%mzn-stat: restarts=0
+%%%mzn-stat: peakDepth=26
+%%%mzn-stat-end
+%%%mzn-stat: nSolutions=1
+%%%mzn-stat-end
