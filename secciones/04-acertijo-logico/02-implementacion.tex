@@ -1,4 +1,26 @@
 % !TEX root = ../../main.tex
 
 \subsection{Detalles de implementación}\label{sec:04-acertijo-logico-impl}
-Restricciones redundantes, rompimiento de simetrías y decisiones técnicas.
+\subsubsection*{Restricciones redundantes}
+Las restricciones redundantes no alteran el conjunto de soluciones válidas, pero \textbf{reducen el espacio de búsqueda} al descartar combinaciones imposibles antes de explorarlas.  
+En el modelo de \emph{secuencias mágicas}, añadir:
+\[
+\sum_{i=0}^{n-1} x[i] = n
+\quad\text{y}\quad
+\sum_{i=0}^{n-1} (i-1)\,x[i] = 0
+\]
+actúa como filtro global.
+
+\begin{itemize}
+  \item \(\displaystyle \sum_i x[i] = n\). \textit{Justificación}: por definición, \(x[i]\) es la cantidad de veces que aparece \(i\). La suma de todas las frecuencias es el tamaño total de la secuencia, \(n\).
+  \item \(\displaystyle \sum_i (i-1)\,x[i] = 0\). \textit{Justificación}: \(\sum_i i\,x[i]\) es la suma de todos los valores de la secuencia (cada \(i\) contado \(x[i]\) veces). Pero esa suma coincide con \(\sum_i x[i]\) (porque cada aparición “cuenta” una unidad al total de valores agregados), y ya sabemos que \(\sum_i x[i]=n\). Por tanto, \(\sum_i i\,x[i]=n\) y, reordenando, \(\sum_i (i-1)\,x[i]=0\).
+\end{itemize}
+
+Estas condiciones adicionales \textbf{mejoran la propagación} (impulsan la consistencia global de los dominios) y \textbf{acortan la búsqueda} al detectar tempranamente ramas que nunca podrán satisfacer la definición de secuencia mágica.
+
+\subsubsection*{Simetrías}
+En el problema de secuencias mágicas no hay simetrías relevantes entre variables: cada posición \(x[i]\) representa el \emph{índice} \(i\) y su valor es la \emph{frecuencia} de \(i\).  
+\begin{itemize}
+  \item Cualquier permutación de posiciones cambia el significado semántico de los valores (el \(x[i]\) dejaría de contar apariciones de \(i\)), por lo que \textbf{no es una simetría admisible}.
+  \item El modelo es, por tanto, \textbf{intrínsecamente asimétrico}; no se requieren restricciones adicionales de rompimiento de simetrías.
+\end{itemize}

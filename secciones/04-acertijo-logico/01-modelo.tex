@@ -1,5 +1,82 @@
 % !TEX root = ../../main.tex
 
 \subsection{Modelo}\label{sec:04-acertijo-logico-modelo}
-Definición de variables, dominios y restricciones principales.
-Justificación del modelo.
+
+\subsection*{Parámetros y Conjuntos}
+\begin{itemize}
+  \item \textbf{Personas}: \texttt{NOMBRE=\{Juan, Oscar, Dario\}}.
+  \item \textbf{Edades}: \texttt{AGE=\{24, 25, 26\}}.
+  \item \textbf{Códigos de categorías}: Apellidos \texttt{(1..3)} $\equiv$ \{\texttt{GONZALEZ=1}, \texttt{GARCIA=2}, \texttt{LOPEZ=3}\}; Música \texttt{(1..3)} $\equiv$ \{\texttt{CLASICA=1}, \texttt{POP=2}, \texttt{JAZZ=3}\}.
+\end{itemize}
+
+\subsection*{Variables de Decisión}
+\begin{itemize}
+  \item \textbf{Atributos por persona}:
+  \[
+  \texttt{apellido[n]}\in 1..3,\quad
+  \texttt{musica[n]}\in 1..3,\quad
+  \texttt{edad[n]}\in \{24,25,26\}\quad \forall n\in \texttt{NOMBRE}.
+  \]
+  \item \textbf{Punteros (variables índice)}:
+  \[
+  \texttt{p\_gonzalez}\in \texttt{NOMBRE},\qquad
+  \texttt{p\_pop}\in \texttt{NOMBRE}.
+  \]
+  Estas variables “apuntan” a la persona que cumple un atributo, permitiendo expresar pistas del tipo “\emph{la persona de apellido González}” o “\emph{a quien le gusta Pop}” sin duplicar estructuras.
+\end{itemize}
+
+\subsection*{Restricciones del Modelo}
+\begin{enumerate}
+  \item \textbf{Unicidad por atributo (permuta de etiquetas)}:
+  \[
+  \texttt{alldifferent}([\texttt{apellido[n]}]),\quad
+  \texttt{alldifferent}([\texttt{musica[n]}]),\quad
+  \texttt{alldifferent}([\texttt{edad[n]}]).
+  \]
+  Garantiza que no haya dos personas con el mismo apellido, género musical ni edad.
+  \item \textbf{Enlaces de punteros (mapeo índice\,$\rightarrow$\,valor)}:
+  \[
+  \texttt{apellido[p\_gonzalez]} = \texttt{GONZALEZ},\qquad
+  \texttt{musica[p\_pop]} = \texttt{POP}.
+  \]
+  \textit{Lectura}: el índice \texttt{p\_gonzalez} es exactamente la persona cuyo \texttt{apellido} vale \texttt{GONZALEZ}; análogamente, \texttt{p\_pop} apunta a quien escucha \texttt{POP}.
+  \item \textbf{Pistas del acertijo} (tal como enunciado):
+  \[
+  \begin{aligned}
+  &\texttt{edad[Juan]} > \texttt{edad[p\_gonzalez]},\qquad
+  \texttt{musica[p\_gonzalez]} = \texttt{CLASICA},\\
+  &\texttt{apellido[p\_pop]} \neq \texttt{GARCIA},\qquad
+  \texttt{edad[p\_pop]} \neq 24,\\
+  &\texttt{apellido[Oscar]} \neq \texttt{LOPEZ},\qquad
+  \texttt{edad[Oscar]} = 25,\\
+  &\texttt{musica[Dario]} \neq \texttt{JAZZ}.
+  \end{aligned}
+  \]
+\end{enumerate}
+
+\subsection*{Estrategia de Búsqueda}
+Se usa:
+\[
+\texttt{solve :: int\_search([\dots], first\_fail, indomain\_min, complete) satisfy;}
+\]
+\begin{itemize}
+  \item \textbf{first\_fail}: selecciona primero la variable más restringida, mejorando la propagación.
+  \item \textbf{indomain\_min}: intenta valores pequeños primero (útil dado el codificado 1..3).
+  \item \textbf{complete}: búsqueda exhaustiva (garantiza encontrar todas las soluciones si se solicita \texttt{--all-solutions}).
+\end{itemize}
+\textit{Sugerencia}: para potenciar la poda, se puede ordenar las variables de búsqueda colocando primero los \emph{punteros} (\texttt{p\_gonzalez}, \texttt{p\_pop}) y luego los atributos, pues activan antes las restricciones enlazadas.
+
+\subsection*{Salida y Mapeo a Texto}
+Se definen arreglos de \texttt{string} para traducir los códigos numéricos a etiquetas legibles:
+\[
+\texttt{ap\_str = ["Gonzalez","Garcia","Lopez"]},\quad
+\texttt{mu\_str = ["Clasica","Pop","Jazz"]}.
+\]
+La salida recorre \texttt{NOMBRE} y, vía \texttt{fix()}, imprime \emph{Nombre, Apellido, Edad, Música} de manera clara.
+
+\subsection*{Poda Adicional (Opcional) y Observaciones}
+\begin{itemize}
+  \item \textbf{Cortes lógicos simples}: de \(\texttt{edad[Juan]} > \texttt{edad[p\_gonzalez]}\) y \texttt{alldifferent} se infiere \(\texttt{p\_gonzalez} \neq \texttt{Juan}\).
+  \item \textbf{Consistencia de dominios}: \(\texttt{edad[Oscar]}=25\) reduce inmediatamente candidatos de otras edades y ayuda a fijar \(\texttt{p\_pop}\) (no puede ser quien tenga 24).
+  \item \textbf{Simetrías}: el índice de personas (\texttt{Juan}, \texttt{Oscar}, \texttt{Dario}) rompe la simetría por permutación de individuos; los valores categóricos (apellidos, música) son \emph{etiquetas semánticas}, por lo que no es apropiado reetiquetarlas: no hay simetría estructural relevante remanente.
+\end{itemize}

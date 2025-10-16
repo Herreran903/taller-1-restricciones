@@ -1,0 +1,38 @@
+CMD: minizinc --solver chuffed --statistics --time-limit 60000 modelos/secuencia\results/flat\test_03__chuffed__ff_min.fzn
+
+% Generated FlatZinc statistics:
+%%%mzn-stat: paths=0
+%%%mzn-stat: flatBoolVars=10000
+%%%mzn-stat: flatIntVars=100
+%%%mzn-stat: flatIntConstraints=10102
+%%%mzn-stat: evaluatedReifiedConstraints=10000
+%%%mzn-stat: method="satisfy"
+%%%mzn-stat: flatTime=0.241393
+%%%mzn-stat-end
+X_INTRODUCED_0_ = array1d(1..100,[96, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]);
+----------
+%%%mzn-stat: nodes=166
+%%%mzn-stat: failures=8
+%%%mzn-stat: restarts=0
+%%%mzn-stat: variables=30202
+%%%mzn-stat: intVars=100
+%%%mzn-stat: boolVariables=30100
+%%%mzn-stat: propagators=205
+%%%mzn-stat: propagations=2735
+%%%mzn-stat: peakDepth=50
+%%%mzn-stat: nogoods=8
+%%%mzn-stat: backjumps=111
+%%%mzn-stat: peakMem=0.00
+%%%mzn-stat: time=0.242
+%%%mzn-stat: initTime=0.237
+%%%mzn-stat: solveTime=0.005
+%%%mzn-stat: baseMem=0.00
+%%%mzn-stat: trailMem=0.19
+%%%mzn-stat: randomSeed=1622323408
+%%%mzn-stat-end
+%%%mzn-stat: nSolutions=1
+%%%mzn-stat-end
+
+
+--- STDERR ---
+WARNING: the --time-out flag has recently been changed.The time-out is now provided in milliseconds instead of seconds

@@ -1,4 +1,25 @@
 % !TEX root = ../../main.tex
 
 \subsection{Detalles de implementación}\label{sec:03-secuencia-magica-impl}
-Restricciones redundantes, rompimiento de simetrías y decisiones técnicas.
+
+\subsubsection*{Restricciones redundantes}
+  Las restricciones redundantes no alteran el conjunto de soluciones válidas, pero \textbf{reducen el espacio de búsqueda} del solucionador al eliminar combinaciones imposibles antes de explorarlas.  
+  En el modelo de secuencias mágicas, las restricciones:
+  \[
+  \sum_{i=0}^{n-1} x[i] = n
+  \quad\text{y}\quad
+  \sum_{i=0}^{n-1} (i-1)\,x[i] = 0
+  \]
+  actúan como filtros globales.  
+  \begin{itemize}
+    \item La primera asegura que la suma de todas las frecuencias sea igual a la longitud de la secuencia, descartando asignaciones inconsistentes.
+    \item La segunda mantiene el equilibrio entre los índices y sus valores, eliminando ramas que no pueden conducir a una secuencia válida.
+  \end{itemize}
+  Estas condiciones adicionales \textbf{mejoran la propagación de restricciones} y acortan el tiempo total de búsqueda.
+
+\subsubsection*{Simetrías}
+  En el problema de las secuencias mágicas no existen simetrías relevantes entre las variables, ya que cada posición \(x[i]\) representa un índice distinto y tiene un significado propio.  
+  \begin{itemize}
+    \item Permutar las posiciones del arreglo alteraría la interpretación del valor \(x[i]\) (que indica cuántas veces aparece el número \(i\)).
+    \item Por ello, el modelo es \textbf{intrínsecamente asimétrico}, y no se requiere ninguna restricción adicional de rompimiento de simetrías.
+  \end{itemize}
