@@ -41,11 +41,14 @@ constraint edad[Oscar] = 25;
 
 constraint musica[Dario] != JAZZ;
 
+array[int] of var int: vars =
+    [ apellido[n] | n in NOMBRE ]
+ ++ [ musica[n]   | n in NOMBRE ]
+ ++ [ edad[n]     | n in NOMBRE ];
+
 % ----------------------- Búsqueda -------------------------------
 solve :: int_search(
-          [apellido[n] | n in NOMBRE] ++
-          [musica[n]   | n in NOMBRE] ++
-          [edad[n]        | n in NOMBRE],
+          vars,
           first_fail, indomain_min, complete
        ) satisfy;
 
