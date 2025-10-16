@@ -3,28 +3,29 @@
 %%%mzn-stat: flatIntVars=60
 %%%mzn-stat: flatIntConstraints=27
 %%%mzn-stat: method="satisfy"
-%%%mzn-stat: flatTime=0.0439449
+%%%mzn-stat: flatTime=0.0403121
 %%%mzn-stat-end
 X_INTRODUCED_16_ = array1d(1..81,[7, 4, 3, 8, 9, 2, 1, 5, 6, 5, 1, 8, 6, 4, 7, 9, 3, 2, 9, 6, 2, 3, 5, 1, 7, 4, 8, 6, 2, 4, 5, 8, 9, 3, 7, 1, 8, 7, 9, 1, 3, 4, 2, 6, 5, 3, 5, 1, 2, 7, 6, 4, 8, 9, 4, 9, 6, 7, 1, 5, 8, 2, 3, 2, 8, 7, 9, 6, 3, 5, 1, 4, 1, 3, 5, 4, 2, 8, 6, 9, 7]);
 ----------
-%%%mzn-stat: nodes=417
-%%%mzn-stat: failures=369
+==========
+%%%mzn-stat: nodes=471
+%%%mzn-stat: failures=428
 %%%mzn-stat: restarts=0
 %%%mzn-stat: variables=1238
 %%%mzn-stat: intVars=69
 %%%mzn-stat: boolVariables=1167
 %%%mzn-stat: propagators=55
-%%%mzn-stat: propagations=9285
+%%%mzn-stat: propagations=10735
 %%%mzn-stat: peakDepth=13
-%%%mzn-stat: nogoods=369
+%%%mzn-stat: nogoods=428
 %%%mzn-stat: backjumps=43
 %%%mzn-stat: peakMem=0.00
-%%%mzn-stat: time=0.007
+%%%mzn-stat: time=0.008
 %%%mzn-stat: initTime=0.000
-%%%mzn-stat: solveTime=0.007
+%%%mzn-stat: solveTime=0.008
 %%%mzn-stat: baseMem=0.00
 %%%mzn-stat: trailMem=0.01
-%%%mzn-stat: randomSeed=654174224
+%%%mzn-stat: randomSeed=-1075255517
 %%%mzn-stat-end
 %%%mzn-stat: nSolutions=1
 %%%mzn-stat-end
