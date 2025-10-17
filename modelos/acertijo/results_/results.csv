@@ -1,0 +1,9 @@
+file,solver,strategy,rc,status,time_raw,time,nodes,failures,peakDepth,solutions,restarts,initTime,solveTime
+test_01,gecode,ff_min,0,,0.0020797,2.080e-03,5,2,1,1,0,0.0016512,0.0004285
+test_01,gecode,wdeg_split,0,,0.0007287,7.287e-04,5,2,1,1,0,0.0006332,9.55e-05
+test_01,gecode,inorder_min,0,,0.0008408000000000001,8.408e-04,5,2,1,1,0,0.0007395,0.0001013
+test_01,gecode,inorder_split,0,,0.0006506,6.506e-04,5,2,1,1,0,0.0005472,0.0001034
+test_01,chuffed,ff_min,0,,0.004,4.000e-03,3,1,1,1,0,0.004,0.0
+test_01,chuffed,wdeg_split,0,,0.003,3.000e-03,3,1,1,1,0,0.003,0.0
+test_01,chuffed,inorder_min,0,,0.002,2.000e-03,3,1,1,1,0,0.002,0.0
+test_01,chuffed,inorder_split,0,,0.002,2.000e-03,3,1,1,1,0,0.002,0.0

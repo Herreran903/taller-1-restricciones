@@ -2,23 +2,27 @@ CMD: minizinc --solver gecode --statistics --time-limit 60000 modelos/acertijo\r
 
 % Generated FlatZinc statistics:
 %%%mzn-stat: paths=0
-%%%mzn-stat: flatIntVars=13
-%%%mzn-stat: flatIntConstraints=10
+%%%mzn-stat: flatBoolVars=14
+%%%mzn-stat: flatIntVars=8
+%%%mzn-stat: flatBoolConstraints=9
+%%%mzn-stat: flatIntConstraints=21
+%%%mzn-stat: evaluatedReifiedConstraints=5
+%%%mzn-stat: evaluatedHalfReifiedConstraints=9
 %%%mzn-stat: method="satisfy"
-%%%mzn-stat: flatTime=0.0908317
+%%%mzn-stat: flatTime=0.10278
 %%%mzn-stat-end
 apellido = array1d(1..3,[3, 2, 1]);
 musica = array1d(1..3,[2, 3, 1]);
 edad = array1d(1..3,[26, 25, 24]);
 ----------
-%%%mzn-stat: initTime=0.0005782
-%%%mzn-stat: solveTime=0.0001182
+%%%mzn-stat: initTime=0.0006332
+%%%mzn-stat: solveTime=9.55e-05
 %%%mzn-stat: solutions=1
-%%%mzn-stat: variables=15
-%%%mzn-stat: propagators=8
-%%%mzn-stat: propagations=52
-%%%mzn-stat: nodes=3
-%%%mzn-stat: failures=1
+%%%mzn-stat: variables=24
+%%%mzn-stat: propagators=29
+%%%mzn-stat: propagations=116
+%%%mzn-stat: nodes=5
+%%%mzn-stat: failures=2
 %%%mzn-stat: restarts=0
 %%%mzn-stat: peakDepth=1
 %%%mzn-stat-end

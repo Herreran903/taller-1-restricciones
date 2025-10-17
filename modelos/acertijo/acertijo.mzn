@@ -1,64 +1,78 @@
 % -------------------------------------------
-% acertijo.mzn — Atributos como enteros + salida legible
+% acertijo_sin_punteros.mzn — Sin punteros
 % -------------------------------------------
-include "globals.mzn";  % para alldifferent
+include "globals.mzn";
 
 % ----------------------- Parámetros ----------------
 enum NOMBRE = {Juan, Oscar, Dario};
 set of int: AGE = {24,25,26};
 
-% Índices (constantes)
+% Códigos para atributos
 int: GONZALEZ = 1; int: GARCIA = 2; int: LOPEZ = 3;
 int: CLASICA  = 1; int: POP    = 2; int: JAZZ  = 3;
 
-% ----------------------- Variables -----------------------------
+% ----------------------- Variables -----------------
 array[NOMBRE] of var 1..3: apellido;   % 1..3
 array[NOMBRE] of var 1..3: musica;     % 1..3
-array[NOMBRE] of var AGE:  edad;          % 24,25,26
+array[NOMBRE] of var AGE:  edad;       % 24,25,26
 
-% “punteros”
-var NOMBRE: p_gonzalez;
-var NOMBRE: p_pop;
-
-% ----------------------- Restricciones -------------------------
+% ----------------------- Restricciones --------------
+% Biyectividad de asignaciones
 constraint alldifferent([apellido[n] | n in NOMBRE]);
 constraint alldifferent([musica[n]   | n in NOMBRE]);
-constraint alldifferent([edad[n]        | n in NOMBRE]);
+constraint alldifferent([edad[n]     | n in NOMBRE]);
 
-% Enlaces de punteros
-constraint apellido[p_gonzalez] = GONZALEZ;
-constraint musica[p_pop] = POP;
 
-% Pistas del acertijo
-constraint edad[Juan] > edad[p_gonzalez];
-constraint musica[p_gonzalez] = CLASICA;
+% (1) Juan es mayor que la persona de apellido Gonzalez
+constraint forall(n in NOMBRE)(
+  (apellido[n] = GONZALEZ) -> (edad[Juan] > edad[n])
+);
 
-constraint apellido[p_pop] != GARCIA;
-constraint edad[p_pop] != 24;
+% (2) La persona de apellido Gonzalez escucha clásica
+constraint forall(n in NOMBRE)(
+  (apellido[n] = GONZALEZ) -> (musica[n] = CLASICA)
+);
 
+% (3) Quien escucha Pop no es García
+constraint forall(n in NOMBRE)(
+  (musica[n] = POP) -> (apellido[n] != GARCIA)
+);
+
+% (4) Quien escucha Pop no tiene 24 años
+constraint forall(n in NOMBRE)(
+  (musica[n] = POP) -> (edad[n] != 24)
+);
+
+% --- Resto de pistas ---
 constraint apellido[Oscar] != LOPEZ;
 constraint edad[Oscar] = 25;
-
 constraint musica[Dario] != JAZZ;
 
+% ----------------------- Redundantes útiles --------
+% Cada valor aparece exactamente una vez (ya lo implica alldifferent + dominios),
+% pero esto suele podar antes.
+% constraint count([apellido[n] | n in NOMBRE], GONZALEZ) = 1;
+% constraint count([musica[n]   | n in NOMBRE], POP)      = 1;
+
+% % La suma de las edades es fija (24+25+26=75), consecuencia de alldifferent(edad).
+% constraint sum(n in NOMBRE)(edad[n]) = 24 + 25 + 26;
+
+% ----------------------- Búsqueda -------------------
 array[int] of var int: vars =
     [ apellido[n] | n in NOMBRE ]
  ++ [ musica[n]   | n in NOMBRE ]
  ++ [ edad[n]     | n in NOMBRE ];
+ 
+%solve satisfy;
 
-% ----------------------- Búsqueda -------------------------------
-% solve satisfy;
-
-% first_fail + indomain_min: elige la var con dominio más pequeño, prueba el menor valor y hace DFS completa (poda temprana).
 % solve :: int_search(vars, first_fail, indomain_min, complete) satisfy;
 
-% input_order + indomain_split: respeta el orden de x tal cual; en cada variable parte el dominio (mitad inferior primero) para forzar propagación; búsqueda completa (DFS).
 % solve :: int_search(vars, input_order, indomain_split, complete) satisfy;
 
-% input_order + indomain_min: sigue el orden de x tal cual, prueba el menor valor y hace DFS completa (control/reproducible).
- solve :: int_search(vars, input_order, indomain_min, complete) satisfy;
+% solve :: int_search(vars, input_order, indomain_min, complete) satisfy;
 
-% ----------------------- Salida -------------------------------
+ solve :: int_search(vars, dom_w_deg, indomain_split, complete) satisfy;
+% ----------------------- Salida ---------------------
 array[1..3] of string: ap_str = ["Gonzalez","Garcia","Lopez"];
 array[1..3] of string: mu_str = ["Clasica","Pop","Jazz"];
 
