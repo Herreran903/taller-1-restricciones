@@ -1,0 +1,13 @@
+file,solver,strategy,rc,status,time_raw,time,nodes,failures,peakDepth,solutions,restarts,initTime,solveTime
+test_01,chuffed,wdeg_split,0,,0.009,9.000e-03,27,19,8,4,0,0.008,0.001
+test_02,chuffed,wdeg_split,0,,0.008,8.000e-03,40,27,10,4,0,0.007,0.001
+test_03,chuffed,wdeg_split,0,,,,,,,0,,,
+test_01,chuffed,ff_min,0,,0.008,8.000e-03,24,23,6,4,0,0.007,0.001
+test_02,chuffed,ff_min,0,,0.008,8.000e-03,24,24,4,4,0,0.008,0.0
+test_03,chuffed,ff_min,0,,,,,,,0,,,
+test_01,gecode,wdeg_split,0,,0.0004906,4.906e-04,83,38,8,4,0,0.0002894,0.0002012
+test_02,gecode,wdeg_split,0,,0.0004163,4.163e-04,49,21,6,4,0,0.0002743,0.000142
+test_03,gecode,wdeg_split,0,,0.0055994,5.599e-03,0,1,0,0,0,0.0055813,1.81e-05
+test_01,gecode,ff_min,0,,0.0004884,4.884e-04,85,39,10,4,0,0.000291,0.0001974
+test_02,gecode,ff_min,0,,0.0004073,4.073e-04,55,24,8,4,0,0.0002648,0.0001425
+test_03,gecode,ff_min,0,,0.0001543,1.543e-04,0,1,0,0,0,0.0001388,1.55e-05

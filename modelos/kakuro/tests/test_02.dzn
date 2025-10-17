@@ -1,0 +1,39 @@
+% kakuro.dzn (basado en el Kakuro de la imagen del profesor)
+R = 8;
+C = 8;
+
+% 1 = casilla blanca (donde se colocan números)
+% 0 = casilla negra (con pistas o vacía)
+white = array2d(1..C, 1..R,
+[
+  % fila 1
+  0, 0, 0, 0, 0, 0, 0, 0,
+  % fila 2
+  0, 0, 0, 1, 1, 0, 0, 0,
+  % fila 3
+  0, 0, 0, 1, 1, 1, 0, 0,
+  % fila 4
+  0, 1, 1, 1, 0, 1, 1, 0,
+  % fila 5
+  0, 1, 1, 0, 0, 0, 1, 1,
+  % fila 6
+  0, 0, 1, 1, 0, 1, 1, 1,
+  % fila 7
+  0, 0, 0, 1, 1, 1, 0, 0,
+  % fila 8
+  0, 0, 0, 0, 1, 1, 0, 0
+]);
+
+% Pistas horizontales (across)
+NA = 10;
+a_row = [4, 4, 2, 6, 2, 7, 3, 6, 4, 5];  % fila donde inicia cada pista
+a_col = [2, 3, 4, 4, 5, 5, 6, 6, 7, 8];  % columna inicial
+a_len = [2, 3, 3, 2, 2, 2, 2, 3, 3, 2];  % longitud del grupo
+a_sum = [9, 24, 7, 12, 12, 10, 14, 9, 22, 11];  % sumas dadas en la imagen
+
+% Pistas verticales (down)
+ND = 10;
+d_row = [2, 3, 4, 4, 5, 5, 6, 6, 7, 8];  % fila donde inicia cada pista
+d_col = [4, 4, 2, 6, 2, 7, 3, 6, 4, 5];  % columna donde aparece la pista
+d_len = [2, 3, 3, 2, 2, 2, 2, 3, 3, 2];  % longitud del grupo
+d_sum = [7, 20, 10, 14, 15, 17, 13, 8, 23, 3];  % sumas verticales de la imagen

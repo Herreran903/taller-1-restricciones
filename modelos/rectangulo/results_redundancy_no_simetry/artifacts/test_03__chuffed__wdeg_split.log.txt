@@ -1,0 +1,39 @@
+CMD: minizinc --all-solutions --solver chuffed --statistics --time-limit 60000 modelos/rectangulo\results/flat\test_03__chuffed__wdeg_split.fzn
+
+% Generated FlatZinc statistics:
+%%%mzn-stat: paths=0
+%%%mzn-stat: flatBoolVars=60
+%%%mzn-stat: flatIntVars=12
+%%%mzn-stat: flatBoolConstraints=15
+%%%mzn-stat: flatIntConstraints=60
+%%%mzn-stat: evaluatedReifiedConstraints=60
+%%%mzn-stat: method="satisfy"
+%%%mzn-stat: flatTime=0.0477752
+%%%mzn-stat-end
+=====UNSATISFIABLE=====
+%%%mzn-stat: nodes=91
+%%%mzn-stat: failures=51
+%%%mzn-stat: restarts=0
+%%%mzn-stat: variables=206
+%%%mzn-stat: intVars=12
+%%%mzn-stat: boolVariables=192
+%%%mzn-stat: propagators=121
+%%%mzn-stat: propagations=2663
+%%%mzn-stat: peakDepth=12
+%%%mzn-stat: nogoods=51
+%%%mzn-stat: backjumps=40
+%%%mzn-stat: peakMem=0.00
+%%%mzn-stat: time=0.007
+%%%mzn-stat: initTime=0.007
+%%%mzn-stat: solveTime=0.000
+%%%mzn-stat: baseMem=0.00
+%%%mzn-stat: trailMem=0.00
+%%%mzn-stat: randomSeed=-34613171
+%%%mzn-stat-end
+%%%mzn-stat: nSolutions=0
+%%%mzn-stat-end
+
+
+--- STDERR ---
+WARNING: the --time-out flag has recently been changed.The time-out is now provided in milliseconds instead of seconds
+% Warning: Unknown or not support variable selection annotation 'dom_w_deg'! Ignore variable selection annotation and replace it by 'input_order'.
