@@ -1,24 +1,28 @@
-CMD: minizinc --solver chuffed --statistics --time-limit 60000 modelos/acertijo\results/flat\test_01__chuffed__inorder_min.fzn
+CMD: minizinc --solver chuffed --statistics --time-limit 60000 modelos/acertijo\results/flat\test_01__chuffed__inorder_split.fzn
 
 % Generated FlatZinc statistics:
 %%%mzn-stat: paths=0
-%%%mzn-stat: flatIntVars=13
-%%%mzn-stat: flatIntConstraints=10
+%%%mzn-stat: flatBoolVars=20
+%%%mzn-stat: flatIntVars=8
+%%%mzn-stat: flatBoolConstraints=11
+%%%mzn-stat: flatIntConstraints=25
+%%%mzn-stat: evaluatedReifiedConstraints=13
+%%%mzn-stat: evaluatedHalfReifiedConstraints=7
 %%%mzn-stat: method="satisfy"
-%%%mzn-stat: flatTime=0.0871759
+%%%mzn-stat: flatTime=0.0854824
 %%%mzn-stat-end
 apellido = array1d(1..3,[3, 2, 1]);
 musica = array1d(1..3,[2, 3, 1]);
 edad = array1d(1..3,[26, 25, 24]);
 ----------
-%%%mzn-stat: nodes=2
+%%%mzn-stat: nodes=3
 %%%mzn-stat: failures=1
 %%%mzn-stat: restarts=0
-%%%mzn-stat: variables=111
-%%%mzn-stat: intVars=17
-%%%mzn-stat: boolVariables=92
-%%%mzn-stat: propagators=14
-%%%mzn-stat: propagations=34
+%%%mzn-stat: variables=90
+%%%mzn-stat: intVars=10
+%%%mzn-stat: boolVariables=78
+%%%mzn-stat: propagators=15
+%%%mzn-stat: propagations=27
 %%%mzn-stat: peakDepth=1
 %%%mzn-stat: nogoods=1
 %%%mzn-stat: backjumps=0
@@ -28,7 +32,7 @@ edad = array1d(1..3,[26, 25, 24]);
 %%%mzn-stat: solveTime=0.000
 %%%mzn-stat: baseMem=0.00
 %%%mzn-stat: trailMem=0.00
-%%%mzn-stat: randomSeed=1511049069
+%%%mzn-stat: randomSeed=-1395038437
 %%%mzn-stat-end
 %%%mzn-stat: nSolutions=1
 %%%mzn-stat-end

@@ -1,4 +1,29 @@
 % !TEX root = ../../main.tex
 
 \subsection{Pruebas}\label{sec:04-acertijo-logico-pruebas}
-Casos de prueba, entradas, métricas y tablas o figuras de apoyo.
+Para las pruebas se usaron 2 solvers, GeoCode y Chuffed, y 4 heurísticas de variable de decisión (first\_fail, input\_order, input\_order + indomain\_split, y dom\_wdeg + indomain\_split). Una sola prueba debido a que el problema no tiene parametros que varien.
+
+\begin{compactfloats}
+\begin{table}[H]
+  \centering
+  \small
+  \setlength{\tabcolsep}{10.8pt}
+  \caption{Resultados de pruebas \textbf{sin} restricciones redundantes (formato compatible).}
+  \label{tab:pruebas-acertijo-off}
+  \begin{tabular}{l l l l l r r r}
+    \toprule
+    \textbf{Archivo} & \textbf{Solver} & \textbf{Var heur} & \textbf{Val heur} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} \\
+    \midrule
+    test\_01 & Chuffed  &  first\_fail  &  indomain\_min & 4.00E-03 & 3 & 1 & 1 \\
+    test\_01 & Chuffed  & input\_order  &  indomain\_min & 2.00E-03 & 3 & 1 & 1 \\
+    test\_01 & Chuffed  & input\_order  & indomain\_split & 2.00E-03 & 3 & 1 & 1 \\
+    test\_01 & Chuffed  &  wdeg\_split  & indomain\_split & 3.00E-03 & 3 & 1 & 1 \\
+    test\_01 & Gecode  &  first\_fail  &  indomain\_min & 2.08E-03 & 5 & 2 & 1 \\
+    test\_01 & Gecode  & input\_order  &  indomain\_min & 8.41E-04 & 5 & 2 & 1 \\
+    test\_01 & Gecode  & input\_order  & indomain\_split & 6.51E-04 & 5 & 2 & 1 \\
+    test\_01 & Gecode  &  wdeg\_split  & indomain\_split & 7.29E-04 & 5 & 2 & 1 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{compactfloats}
