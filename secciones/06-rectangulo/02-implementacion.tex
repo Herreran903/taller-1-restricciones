@@ -10,10 +10,8 @@ En el modelo de empaquetado de cuadrados dentro de un rectángulo, son útiles:
 \]
 \begin{itemize}
   \item \textbf{Filtro de área}: si el área total de los cuadrados supera el área del contenedor, no hay solución; imponerlo evita búsquedas inútiles.
-  \item \textbf{Cotas de contención explícitas}: escribir \(x[i]\le W-s[i]\) y \(y[i]\le H-s[i]\) (ya implícitas en el modelo) ayuda a la propagación temprana.
-  \item \textbf{Proyecciones por ejes (opcional)}: en instancias densas, restricciones tipo “carga por franjas” (sumas de anchos/altos sobre cortes discretos) pueden reforzar \texttt{diffn} al nivel de dominio.
 \end{itemize}
-Estas condiciones \textbf{mejoran la propagación} y suelen acortar el tiempo total de búsqueda, especialmente en casos con alta densidad de área.
+Esta condición \textbf{evita la búsqueda} en casos donde desde el inicio no existe una solución.
 
 \subsubsection*{Simetrías}
 En este problema sí existen simetrías relevantes:
@@ -22,6 +20,5 @@ En este problema sí existen simetrías relevantes:
   \[
   s[i]=s[j],\ i<j \;\Rightarrow\; \langle x[i],y[i]\rangle \le_{\text{lex}} \langle x[j],y[j]\rangle.
   \]
-  \item \textbf{Simetría de rotación cuando \(W=H\) (opcional)}: si el contenedor es cuadrado, rotar \(90^\circ\) produce disposiciones equivalentes. Puede fijarse una convención simple (p.\,ej., \(x[1]\le y[1]\)) para eliminar duplicados globales.
 \end{itemize}
-Con estas medidas, el modelo se vuelve \textbf{más asimétrico} y el solver evita explorar permutaciones o rotaciones equivalentes, mejorando la eficiencia sin excluir soluciones válidas.
+Con estas medidas, el modelo se vuelve \textbf{más asimétrico} y el solver evita explorar permutaciones equivalentes, mejorando la eficiencia sin excluir soluciones válidas.

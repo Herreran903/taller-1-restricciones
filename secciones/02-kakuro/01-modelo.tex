@@ -4,60 +4,82 @@
 
 \subsubsection*{Parámetros}
 \begin{description}
-  \item[\textbf{P1 — \(DIG\):}] Dígitos permitidos: \(DIG=\{1,\dots,9\}\).
-  \item[\textbf{P2 — \(S\):}] Índices de celdas blancas: \(S=\{1,\dots,W\}\) con \(W\) conocido.
-  \item[\textbf{P3 — \(H\):}] Bloques horizontales. Para cada \(h\in H\), conjunto de celdas \(C^H_h\subseteq S\) y pista \(s^H_h\in\mathbb{N}\).
-  \item[\textbf{P4 — \(V\):}] Bloques verticales. Para cada \(v\in V\), conjunto de celdas \(C^V_v\subseteq S\) y pista \(s^V_v\in\mathbb{N}\).
-  \item[\textbf{P5 — Estructura:}] Cada celda blanca \(i\in S\) pertenece exactamente a un bloque horizontal y a uno vertical, y las celdas negras no están en \(S\).
+  \item[\textbf{P1 — \(R\):}] Filas del tablero, \(R\in\mathbb{N}\).
+  \item[\textbf{P2 — \(C\):}] Columnas del tablero, \(C\in\mathbb{N}\).
+  \item[\textbf{P3 — \(white\):}] Matriz que indica qué casillas son blancas o negras:
+\[
+\texttt{white}:\text{Cols}\times\text{Rows}\to\{0,1\},
+\]
+donde \(\texttt{white}[c,r]=1\) significa que la casilla en columna \(c\) y fila \(r\) es blanca, y \(\texttt{white}[c,r]=0\) indica una casilla negra. El número total de casillas blancas puede obtenerse directamente a partir de \texttt{white} mediante
+\(\sum_{c\in\text{Cols}}\sum_{r\in\text{Rows}}\texttt{white}[c,r]\).
+  \item[\textbf{P4 — pistas horizontales (A):}] Número de pistas horizontales \(\texttt{NA}\). Para cada \(k\in\{1,\dots,\texttt{NA}\}\) se tiene:
+    \[
+      \text{posición de inicio }(a\_col_k\in\{1,\dots,\texttt{C}\},a\_row_k\in\{1,\dots,\texttt{R}\}),\qquad
+      \text{longitud }a\_len_k\in\{1,\dots,\texttt{R}\},\qquad
+      \text{suma objetivo }a\_sum_k\in\mathbb{N}.
+    \]
+    La pista horizontal \(k\) abarca las celdas
+    \[
+      A_k=\{(a\_col_k,\;a\_row_k+k)\;|\;t=0,\dots,a\_len_k-1\},
+    \]
+    y se exige que \(A_k\subseteq white\) (todas sus celdas son blancas).
+  \item[\textbf{P5 — pistas verticales (D):}] Número de pistas verticales \(\texttt{ND}\). Para cada \(k\in\{1,\dots,\texttt{ND}\}\) se tiene:
+    \[
+      \text{posición de inicio }(d\_col_k\in\{1,\dots,\texttt{C}\},d\_row_k\in\{1,\dots,\texttt{R}\}),\qquad
+      \text{longitud }d\_len_k\in\{1,\dots,\texttt{C}\},\qquad
+      \text{suma objetivo }d\_sum_k\in\mathbb{N}.
+    \]
+    La pista vertical \(k\) abarca las celdas
+    \[
+      D_k=\{(d\_col_k+t,\;d\_row_k)\;|\;t=0,\dots,d\_len_k-1\},
+    \]
+    y se exige que \(D_k\subseteq white\).
 \end{description}
 
 \subsubsection*{Variables}
 \begin{description}
-  \item[\textbf{V1 — \(X_i\):}] Valor de la celda blanca \(i\): \(X_i\in DIG\) para todo \(i\in S\).
+  \item[\textbf{V1 — \(X_i\):}] Valor de la celda blanca \(i\): \(X_i\in\{1,\dots,\texttt{9}\}\) para todo \(i\in white\).
 \end{description}
 
 \subsubsection*{Restricciones principales}
 \begin{description}
   \item[\textbf{R1 — Bloques horizontales válidos:}] En cada bloque horizontal, la suma de los valores debe coincidir con la pista y los dígitos no pueden repetirse.  
   \[
-  \forall h \in H:\ \sum_{i \in C^H_h} X_i = s^H_h,
+  \forall a \in A:\ \sum_{i \in C^A_a} X_i = a\_sum^A_a,
   \qquad
-  \forall i_1,i_2 \in C^H_h,\ i_1 \neq i_2 \Rightarrow X_{i_1} \neq X_{i_2}.
+  \forall i_1,i_2 \in C^A_a,\ i_1 \neq i_2 \Rightarrow X_{i_1} \neq X_{i_2}.
   \]
 
   \item[\textbf{R2 — Bloques verticales válidos:}] En cada bloque vertical, la suma de los valores debe coincidir con la pista y los dígitos deben ser distintos entre sí.  
   \[
-  \forall v \in V:\ \sum_{i \in C^V_v} X_i = s^V_v,
+  \forall d \in D:\ \sum_{i \in C^D_d} X_i = d\_sum^D_d,
   \qquad
-  \forall i_1,i_2 \in C^V_v,\ i_1 \neq i_2 \Rightarrow X_{i_1} \neq X_{i_2}.
+  \forall i_1,i_2 \in C^D_d,\ i_1 \neq i_2 \Rightarrow X_{i_1} \neq X_{i_2}.
   \]
 
-  \item[\textbf{R3 — Intersección coherente:}] Cada celda participa en un bloque horizontal y en uno vertical, y su valor cumple ambas restricciones simultáneamente.  
+  \item[\textbf{R3 — Intersección coherente:}] Cada celda de cada pista se encuentra dentro de las casillas blancas definidas por white.  
   \[
-  \forall i \in C:\ X_i \text{ satisface las condiciones de su bloque horizontal y vertical.}
+  \forall i \in A:\ X_i \in white \land \forall i \in D:\ X_i \in white
+  \]
+
+  \item[\textbf{R4 — Fijar casillas negras:}] Para toda posición \((c,r)\) tal que \(\texttt{white}[c,r]=0\) se fija la variable de esa casilla al valor reservado (aquí \(1\)):
+  \[
+  \forall c\in\text{Cols},\ \forall r\in\text{Rows}:\quad
+  \texttt{white}[c,r]=0 \;\Rightarrow\; x[c,r]=1.
   \]
 \end{description}
 
 \subsubsection*{Restricciones redundantes}
 \begin{description}
-  \item[\textbf{R4 — Acotación por suma distinta:}] Si un bloque tiene \(k\) celdas y pista \(s\), la suma de sus valores está acotada por las combinaciones posibles de \(k\) dígitos distintos.  
+  \item[\textbf{R4 — Acotación por suma:}] Si un bloque tiene \(k\) celdas y pista \(s\), la suma de sus valores está acotada por las combinaciones posibles de \(k\) dígitos distintos.  
   \[
   s_{\min}(k) \le \sum_{i=1}^{k} X_i \le s_{\max}(k),
   \qquad
-  s_{\min}(k) = 1 + 2 + \dots + k,\quad
-  s_{\max}(k) = 9 + 8 + \dots + (10 - k).
+  s_{\min}(k) = 1 \times k,\quad
+  s_{\max}(k) = 9 \times - k.
   \]
 
-  \item[\textbf{R5 — Catálogo de combinaciones:}] Para cada par \((k,s)\), los valores del bloque deben pertenecer a un conjunto precomputado de \(k\)-tuplas de dígitos distintos cuya suma es \(s\).  
-  \[
-  \forall (k,s):\ [X_1,\dots,X_k] \in \mathcal{C}(k,s).
-  \]
-
-  \item[\textbf{R6 — Simetría interna en bloques:}] En bloques sin otras condiciones diferenciadoras, se puede imponer un orden no decreciente para eliminar permutaciones equivalentes.  
-  \[
-  \forall i \in \{1,\dots,k-1\}:\ X_i \le X_{i+1}.
-  \]
 \end{description}
 
 \subsubsection*{Justificación del modelo}
-La formulación refleja las reglas y mantiene corrección y completitud. R1 y R2 aplican, en el lugar exacto, la suma objetivo y la no repetición para cada bloque horizontal y vertical; R3 asegura coherencia en los cruces al mantener una única variable por celda que satisface ambas vistas del tablero. La máscara de muros separa posiciones sin decisión de celdas válidas, evita asignaciones fuera del dominio \(1\!-\!9\) y. Las redundancias R4–R6 buscan fortalecer la poda: las cotas de suma descartan dígitos inviables de manera temprana, el catálogo \((k,s)\) concentra la búsqueda en combinaciones factibles con dígitos distintos y el orden interno opcional reduce permutaciones equivalentes dentro de un mismo bloque.
+La formulación refleja las reglas y mantiene corrección y completitud. R1 y R2 aplican, en el lugar exacto, la suma objetivo y la no repetición para cada bloque horizontal y vertical; R3 asegura coherencia en las celdas al mantener las variables en las celdas permitidas del tablero. La máscara de muros separa posiciones sin decisión de celdas válidas, evita asignaciones fuera del dominio \(1\!-\!9\). Laa redundanciaa R4 busca fortalecer la poda: las cotas de suma descartan sumas inviables de manera temprana.

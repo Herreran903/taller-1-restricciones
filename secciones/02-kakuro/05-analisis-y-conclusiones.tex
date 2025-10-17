@@ -1,3 +1,9 @@
 % !TEX root = ../../main.tex
 
 \subsection{Análisis y conclusiones}\label{sec:02-kakuro-analisis}
+
+\paragraph{}
+Las métricas recogidas en las Tablas 3–4 ponen de manifiesto que, en las instancias estudiadas, la activación de las restricciones redundantes no produce una mejora sistemática y significativa en las medidas habituales (nodes, fail y profundidad). Los valores de \texttt{nodes} y \texttt{fail} se mantienen iguales entre las ejecuciones con y sin redundantes y hay una pequeña reducción en el \texttt{time} para las instancias con redundantes, las pequeñas diferencias observadas varían según la combinación solver/heurística, lo que sugiere que están dentro de la variabilidad experimental más que reflejan un efecto claro de las redundantes. Del mismo modo, la elección de heurística (p. ej. \texttt{first\_fail + indomain\_min} frente a \texttt{dom\_w\_deg + indomain\_split}) no muestra aquí un ganador absoluto: ambas combinaciones alcanzan contadores de nodos y fallos comparables en las instancias medidas, en cuanto a los solver, \texttt{Chuffed} demostró explorar menos \texttt{nodes} que \texttt{Gecode}, aunque tardó un poco más en finalizar, en el resto de estadísticas se mantienen en resultados muy similares.
+
+\paragraph{}
+En consecuencia, para este modelo concreto se recomienda mantener por defecto la versión sin restricciones redundantes y considerar su activación únicamente como prueba empírica adicional cuando una instancia concreta muestre beneficio neto. Además, dado que no hay una diferencia robusta entre solvers en estas tablas, la selección de solver y heurística debería guiarse por la métrica objetivo (minimizar tiempo frente a minimizar backtracking) y por pruebas previas sobre la clase de instancias de interés, en lugar de aplicar una regla general de activación de redundantes.
