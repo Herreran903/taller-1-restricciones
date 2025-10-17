@@ -43,7 +43,7 @@ constraint forall(n in NOMBRE)(
   (musica[n] = POP) -> (edad[n] != 24)
 );
 
-% --- Resto de pistas directas ---
+% --- Resto de pistas ---
 constraint apellido[Oscar] != LOPEZ;
 constraint edad[Oscar] = 25;
 constraint musica[Dario] != JAZZ;
