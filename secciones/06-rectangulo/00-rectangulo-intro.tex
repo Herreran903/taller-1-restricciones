@@ -1,5 +1,4 @@
 % !TEX root = ../../main.tex
 
 \section{Construcción de un rectángulo}\label{sec:06-rectangulo}
-Introducción al problema y alcance del modelado.
-Supuestos y parámetros clave.
+Se busca ubicar \(n\) cuadrados de lados \(s[i]\) dentro de un rectángulo \(W\times H\) sin solapamientos. El modelo decide las coordenadas \((x[i],y[i])\) (esquina superior izquierda) de cada cuadrado, garantizando que queden dentro del contenedor y que no se intersecten (\texttt{diffn}). Los parámetros son \(n\), el vector \(s\), y las dimensiones \(W,H\); las variables son \(x[i],y[i]\). Se incluye rompimiento de simetría para cuadrados iguales (orden lexicográfico) y una heurística informada por conflictos para acelerar la búsqueda.

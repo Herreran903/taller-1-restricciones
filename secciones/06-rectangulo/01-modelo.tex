@@ -1,5 +1,64 @@
 % !TEX root = ../../main.tex
 
 \subsection{Modelo}\label{sec:06-rectangulo-modelo}
-Definición de variables, dominios y restricciones principales.
-Justificación del modelo.
+
+\subsubsection*{Parámetros}
+\begin{description}
+  \item[\textbf{P1 — \(n\):}] Número de cuadrados a ubicar.
+  \item[\textbf{P2 — \(s[i]\):}] Lado del cuadrado \(i\) (vector de tamaños).
+  \item[\textbf{P3 — \(W\):}] Ancho del rectángulo contenedor.
+  \item[\textbf{P4 — \(H\):}] Alto del rectángulo contenedor.
+\end{description}
+
+\subsubsection*{Variables}
+\begin{description}
+  \item[\textbf{V1 — \(x[i]\):}] Coordenada \(x\) de la esquina superior izquierda del cuadrado \(i\), con dominio \(x[i]\in\{0,\dots,W\}\).
+  \item[\textbf{V2 — \(y[i]\):}] Coordenada \(y\) de la esquina superior izquierda del cuadrado \(i\), con dominio \(y[i]\in\{0,\dots,H\}\).
+\end{description}
+
+\subsubsection*{Restricciones principales}
+\begin{description}
+  \item[\textbf{R1 — Dentro del contenedor:}] Cada cuadrado debe quedar completamente dentro de \(W\times H\):
+  \[
+  \forall i\in\{1,\dots,n\}:\quad x[i]+s[i]\le W,\ \ y[i]+s[i]\le H.
+  \]
+  \textit{MiniZinc:}
+\begin{verbatim}
+constraint forall(i in 1..n)(
+  x[i] + s[i] <= W /\ y[i] + s[i] <= H
+);
+\end{verbatim}
+
+  \item[\textbf{R2 — No solapamiento:}] Los cuadrados no pueden intersectarse (uso de la global \texttt{diffn}):
+\begin{verbatim}
+constraint diffn(x, y, s, s);
+\end{verbatim}
+\end{description}
+
+\subsubsection*{Restricciones redundantes (opcionales)}
+\begin{description}
+  \item[\textbf{R3 — Filtro de área:}]
+  \[
+  \sum_{i=1}^{n} s[i]^2 \ \le\ W\cdot H.
+  \]
+  \textit{Justificación:} si el área total de los cuadrados excede el área del contenedor, no existe solución; actúa como poda temprana.
+  % MiniZinc (opcional):
+\begin{verbatim}
+% constraint sum(i in 1..n)(s[i]*s[i]) <= W*H;
+\end{verbatim}
+
+  \item[\textbf{R4 — Rompimiento de simetría (tamaños iguales):}] Para cuadrados con igual lado, imponer orden lexicográfico en posiciones para evitar permutaciones equivalentes:
+\[
+\forall i<j:\ s[i]=s[j]\ \Rightarrow\ \langle x[i],y[i]\rangle\ \le_{\text{lex}}\ \langle x[j],y[j]\rangle.
+\]
+\textit{MiniZinc:}
+\begin{verbatim}
+constraint forall(i, j in 1..n where i<j /\ s[i]=s[j])(
+  lex_lesseq([x[i], y[i]], [x[j], y[j]])
+);
+\end{verbatim}
+
+\subsubsection*{Justificación del modelo}
+El modelo es \textbf{correcto} porque sus restricciones capturan exactamente la factibilidad geométrica del empaquetado: (i) las desigualdades
+\(x[i]+s[i]\le W\) y \(y[i]+s[i]\le H\) garantizan que cada cuadrado quede \emph{completamente contenido} en el rectángulo \(W\times H\); (ii) la global \texttt{diffn(x,y,s,s)} impide \emph{solapamientos} entre pares de cuadrados al imponer separaciones en \(x\) o en \(y\); y (iii) los dominios \(x[i]\in\{0,\dots,W\}\), \(y[i]\in\{0,\dots,H\}\) son consistentes con esas cotas, dejando al propagador recortar valores imposibles cuando se activa \(x[i]+s[i]\le W\) y \(y[i]+s[i]\le H\). El modelo es \textbf{completo} porque cualquier configuración válida de los cuadrados dentro del rectángulo satisface las restricciones: si un conjunto de posiciones \((x[i],y[i])\) cumple las cotas y no hay solapamientos, entonces se cumple el CSP. La global \texttt{diffn} es \emph{representacional} (no añade ni elimina soluciones) y el mapeo inverso asegura salida legible. En conjunto, la combinación de dominios precisos, las cotas y \texttt{diffn} elimina asignaciones espurias y, cuando el enunciado determina una única solución, el modelo también la vuelve única.
+\end{description}
