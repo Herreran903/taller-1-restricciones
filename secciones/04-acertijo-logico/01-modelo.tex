@@ -2,81 +2,62 @@
 
 \subsection{Modelo}\label{sec:04-acertijo-logico-modelo}
 
-\subsection*{Parámetros y Conjuntos}
-\begin{itemize}
-  \item \textbf{Personas}: \texttt{NOMBRE=\{Juan, Oscar, Dario\}}.
-  \item \textbf{Edades}: \texttt{AGE=\{24, 25, 26\}}.
-  \item \textbf{Códigos de categorías}: Apellidos \texttt{(1..3)} $\equiv$ \{\texttt{GONZALEZ=1}, \texttt{GARCIA=2}, \texttt{LOPEZ=3}\}; Música \texttt{(1..3)} $\equiv$ \{\texttt{CLASICA=1}, \texttt{POP=2}, \texttt{JAZZ=3}\}.
-\end{itemize}
+\subsubsection*{Parámetros}
+\begin{description}
+  \item[\textbf{P1 — \(\texttt{NOMBRE}\):}] Conjunto de personas: \(\{\texttt{Juan},\texttt{Oscar},\texttt{Dario}\}\).
+  \item[\textbf{P2 — \(\texttt{AGE}\):}] Dominios de edad: \(\{24,25,26\}\).
+  \item[\textbf{P3 — Códigos de atributos:}] Apellidos \(\{\texttt{GONZALEZ}=1,\ \texttt{GARCIA}=2,\ \texttt{LOPEZ}=3\}\) y música \(\{\texttt{CLASICA}=1,\ \texttt{POP}=2,\ \texttt{JAZZ}=3\}\).
+\end{description}
 
-\subsection*{Variables de Decisión}
-\begin{itemize}
-  \item \textbf{Atributos por persona}:
-  \[
-  \texttt{apellido[n]}\in 1..3,\quad
-  \texttt{musica[n]}\in 1..3,\quad
-  \texttt{edad[n]}\in \{24,25,26\}\quad \forall n\in \texttt{NOMBRE}.
-  \]
-  \item \textbf{Punteros (variables índice)}:
-  \[
-  \texttt{p\_gonzalez}\in \texttt{NOMBRE},\qquad
-  \texttt{p\_pop}\in \texttt{NOMBRE}.
-  \]
-  Estas variables “apuntan” a la persona que cumple un atributo, permitiendo expresar pistas del tipo “\emph{la persona de apellido González}” o “\emph{a quien le gusta Pop}” sin duplicar estructuras.
-\end{itemize}
+\subsubsection*{Variables}
+\begin{description}
+  \item[\textbf{V1 — \(\texttt{apellido}[n]\):}] Código de apellido de la persona \(n\), con dominio \(\{1,2,3\}\).
+  \item[\textbf{V2 — \(\texttt{musica}[n]\):}] Género musical de la persona \(n\), con dominio \(\{1,2,3\}\).
+  \item[\textbf{V3 — \(\texttt{edad}[n]\):}] Edad de la persona \(n\), con dominio \(\{24,25,26\}\).
+\end{description}
 
-\subsection*{Restricciones del Modelo}
-\begin{enumerate}
-  \item \textbf{Unicidad por atributo (permuta de etiquetas)}:
+\subsubsection*{Restricciones principales}
+\begin{description}
+  \item[\textbf{R1 — Biyectividad por atributo:}] No hay repeticiones dentro de cada atributo:
   \[
-  \texttt{alldifferent}([\texttt{apellido[n]}]),\quad
-  \texttt{alldifferent}([\texttt{musica[n]}]),\quad
-  \texttt{alldifferent}([\texttt{edad[n]}]).
+  \texttt{alldifferent}\big(\{\texttt{apellido}[n]\}\big),\quad
+  \texttt{alldifferent}\big(\{\texttt{musica}[n]\}\big),\quad
+  \texttt{alldifferent}\big(\{\texttt{edad}[n]\}\big).
   \]
-  Garantiza que no haya dos personas con el mismo apellido, género musical ni edad.
-  \item \textbf{Enlaces de punteros (mapeo índice\,$\rightarrow$\,valor)}:
+  \item[\textbf{R2 — Pistas del acertijo:}] Se expresan como implicaciones índice–valor:
   \[
-  \texttt{apellido[p\_gonzalez]} = \texttt{GONZALEZ},\qquad
-  \texttt{musica[p\_pop]} = \texttt{POP}.
+  (\texttt{apellido}[n]=\texttt{GONZALEZ})\Rightarrow \texttt{edad}[\texttt{Juan}]>\texttt{edad}[n],\ \forall n
   \]
-  \textit{Lectura}: el índice \texttt{p\_gonzalez} es exactamente la persona cuyo \texttt{apellido} vale \texttt{GONZALEZ}; análogamente, \texttt{p\_pop} apunta a quien escucha \texttt{POP}.
-  \item \textbf{Pistas del acertijo} (tal como enunciado):
   \[
-  \begin{aligned}
-  &\texttt{edad[Juan]} > \texttt{edad[p\_gonzalez]},\qquad
-  \texttt{musica[p\_gonzalez]} = \texttt{CLASICA},\\
-  &\texttt{apellido[p\_pop]} \neq \texttt{GARCIA},\qquad
-  \texttt{edad[p\_pop]} \neq 24,\\
-  &\texttt{apellido[Oscar]} \neq \texttt{LOPEZ},\qquad
-  \texttt{edad[Oscar]} = 25,\\
-  &\texttt{musica[Dario]} \neq \texttt{JAZZ}.
-  \end{aligned}
+  (\texttt{apellido}[n]=\texttt{GONZALEZ})\Rightarrow \texttt{musica}[n]=\texttt{CLASICA},\ \forall n
   \]
-\end{enumerate}
+  \[
+  (\texttt{musica}[n]=\texttt{POP})\Rightarrow \texttt{apellido}[n]\neq \texttt{GARCIA},\ \forall n
+  \]
+  \[
+  (\texttt{musica}[n]=\texttt{POP})\Rightarrow \texttt{edad}[n]\neq 24,\ \forall n
+  \]
+  \[
+  \texttt{apellido}[\texttt{Oscar}]\neq \texttt{LOPEZ},\quad
+  \texttt{edad}[\texttt{Oscar}]=25,\quad
+  \texttt{musica}[\texttt{Dario}]\neq \texttt{JAZZ}.
+  \]
+\end{description}
 
-\subsection*{Estrategia de Búsqueda}
-Se usa:
+\subsubsection*{Justificación del modelo}
+El modelo es \textbf{correcto y completo} respecto al acertijo. Es correcto porque: (i) los dominios codifican exactamente los valores admitidos (apellidos, música y edades), (ii) \texttt{alldifferent} garantiza la \emph{biyectividad} persona–valor en cada atributo, como exige el enunciado, y (iii) cada pista se traduce mediante implicaciones índice–valor semánticamente equivalentes (p.\,ej., \(\texttt{GONZALEZ}\Rightarrow\texttt{CLASICA}\), \(\texttt{POP}\Rightarrow\texttt{apellido}\neq\texttt{GARCIA}\), \(\texttt{edad}[\texttt{Oscar}]=25\)), de modo que toda solución del CSP satisface el acertijo. Es completo (\emph{complete}) porque cualquier solución válida del acertijo puede representarse en el modelo: basta mapear las etiquetas a sus códigos enteros y se satisfacen dominios, \texttt{alldifferent} y las implicaciones; por lo tanto, ninguna solución real queda fuera. La codificación entera es puramente \emph{representacional} (no añade ni elimina soluciones) y el mapeo inverso asegura salida legible. En conjunto, la combinación de dominios precisos, \texttt{alldifferent} y las pistas formalizadas elimina asignaciones espurias y, cuando el enunciado determina una única solución, el modelo también la vuelve única.
+
+\subsubsection*{Restricciones redundantes}
+No se añadieron restricciones redundantes en la versión final, ya que la combinación de \texttt{alldifferent} y las pistas es suficiente para fijar la solución en este tamaño de instancia. En pruebas internas, \(\texttt{count}\) sobre valores específicos y la suma fija de edades no aportaron mejoras apreciables de tiempo ni de nodos/fallos, por lo que se priorizó la \emph{simplicidad del modelo}.
+
+\subsubsection*{Estrategia de búsqueda}
+Se concatena el vector de decisión \(\texttt{vars}\) y se usa una heurística reproducible y fuertemente propagante:
 \[
-\texttt{solve :: int\_search([\dots], first\_fail, indomain\_min, complete) satisfy;}
+\texttt{int\_search}(\texttt{vars},\ \texttt{dom\_w\_deg},\ \texttt{indomain\_split},\ \texttt{complete}).
 \]
+\paragraph{Justificación de la estrategia}
 \begin{itemize}
-  \item \textbf{first\_fail}: selecciona primero la variable más restringida, mejorando la propagación.
-  \item \textbf{indomain\_min}: intenta valores pequeños primero (útil dado el codificado 1..3).
-  \item \textbf{complete}: búsqueda exhaustiva (garantiza encontrar todas las soluciones si se solicita \texttt{--all-solutions}).
-\end{itemize}
-\textit{Sugerencia}: para potenciar la poda, se puede ordenar las variables de búsqueda colocando primero los \emph{punteros} (\texttt{p\_gonzalez}, \texttt{p\_pop}) y luego los atributos, pues activan antes las restricciones enlazadas.
-
-\subsection*{Salida y Mapeo a Texto}
-Se definen arreglos de \texttt{string} para traducir los códigos numéricos a etiquetas legibles:
-\[
-\texttt{ap\_str = ["Gonzalez","Garcia","Lopez"]},\quad
-\texttt{mu\_str = ["Clasica","Pop","Jazz"]}.
-\]
-La salida recorre \texttt{NOMBRE} y, vía \texttt{fix()}, imprime \emph{Nombre, Apellido, Edad, Música} de manera clara.
-
-\subsection*{Poda Adicional (Opcional) y Observaciones}
-\begin{itemize}
-  \item \textbf{Cortes lógicos simples}: de \(\texttt{edad[Juan]} > \texttt{edad[p\_gonzalez]}\) y \texttt{alldifferent} se infiere \(\texttt{p\_gonzalez} \neq \texttt{Juan}\).
-  \item \textbf{Consistencia de dominios}: \(\texttt{edad[Oscar]}=25\) reduce inmediatamente candidatos de otras edades y ayuda a fijar \(\texttt{p\_pop}\) (no puede ser quien tenga 24).
-  \item \textbf{Simetrías}: el índice de personas (\texttt{Juan}, \texttt{Oscar}, \texttt{Dario}) rompe la simetría por permutación de individuos; los valores categóricos (apellidos, música) son \emph{etiquetas semánticas}, por lo que no es apropiado reetiquetarlas: no hay simetría estructural relevante remanente.
+  \item \textbf{Selección de variable (\(dom\_w\_deg\))}. Prioriza variables con \emph{dominio pequeño} y \emph{alto grado de conflicto} (ponderado por restricciones que ya han fallado). En este acertijo, las variables de \texttt{apellido}, \texttt{musica} y \texttt{edad} están conectadas por \texttt{alldifferent} e implicaciones reificadas; atacar primero las más “tensas” maximiza la poda temprana.
+  \item \textbf{Selección de valor (\(indomain\_split\))}. Partir el dominio activa más propagación que probar un solo valor (\emph{min}) porque fuerza una dicotomía global: la mitad inferior frente a la superior. Con dominios pequeños (\(\{1,2,3\}\) o \(\{24,25,26\}\)), cada corte dispara propagación en \texttt{alldifferent} y en las implicaciones (p.~ej., \(\texttt{GONZALEZ}\Rightarrow\texttt{CLASICA}\)).
+  \item \textbf{Menos retrocesos, menor profundidad}. La combinación \(\texttt{dom\_w\_deg}+\texttt{split}\) reduce \textit{nodes}/\textit{fail} y la \textit{peakDepth} al resolver primero los cuellos de botella y descartar ramas imposibles antes de comprometer valores concretos.
 \end{itemize}
