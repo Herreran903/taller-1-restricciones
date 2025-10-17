@@ -29,7 +29,16 @@ constraint forall(i in 1..n)(
 );
 \end{verbatim}
 
-  \item[\textbf{R2 — No solapamiento:}] Los cuadrados no pueden intersectarse (uso de la global \texttt{diffn}):
+  \item[\textbf{R2 — No solapamiento:}] Los cuadrados no pueden intersectarse:
+  \[
+    \forall i, j \in \{1, \dots, n\}, \, i \ne j:
+    \quad
+    (x_i + s_i \le x_j) \;\lor\;
+    (x_j + s_j \le x_i) \;\lor\;
+    (y_i + s_i \le y_j) \;\lor\;
+    (y_j + s_j \le y_i)
+  \]
+  \textit{MiniZinc (uso de la global \texttt{diffn}):}
 \begin{verbatim}
 constraint diffn(x, y, s, s);
 \end{verbatim}
@@ -60,5 +69,5 @@ constraint forall(i, j in 1..n where i<j /\ s[i]=s[j])(
 
 \subsubsection*{Justificación del modelo}
 El modelo es \textbf{correcto} porque sus restricciones capturan exactamente la factibilidad geométrica del empaquetado: (i) las desigualdades
-\(x[i]+s[i]\le W\) y \(y[i]+s[i]\le H\) garantizan que cada cuadrado quede \emph{completamente contenido} en el rectángulo \(W\times H\); (ii) la global \texttt{diffn(x,y,s,s)} impide \emph{solapamientos} entre pares de cuadrados al imponer separaciones en \(x\) o en \(y\); y (iii) los dominios \(x[i]\in\{0,\dots,W\}\), \(y[i]\in\{0,\dots,H\}\) son consistentes con esas cotas, dejando al propagador recortar valores imposibles cuando se activa \(x[i]+s[i]\le W\) y \(y[i]+s[i]\le H\). El modelo es \textbf{completo} porque cualquier configuración válida de los cuadrados dentro del rectángulo satisface las restricciones: si un conjunto de posiciones \((x[i],y[i])\) cumple las cotas y no hay solapamientos, entonces se cumple el CSP. La global \texttt{diffn} es \emph{representacional} (no añade ni elimina soluciones) y el mapeo inverso asegura salida legible. En conjunto, la combinación de dominios precisos, las cotas y \texttt{diffn} elimina asignaciones espurias y, cuando el enunciado determina una única solución, el modelo también la vuelve única.
+\(x[i]+s[i]\le W\) y \(y[i]+s[i]\le H\) garantizan que cada cuadrado quede \emph{completamente contenido} en el rectángulo \(W\times H\); (ii) la global \texttt{diffn(x,y,s,s)} impide \emph{solapamientos} entre pares de cuadrados al imponer separaciones en \(x\) o en \(y\); y (iii) los dominios \(x[i]\in\{0,\dots,W\}\), \(y[i]\in\{0,\dots,H\}\) son consistentes con esas cotas, dejando al propagador recortar valores imposibles cuando se activa \(x[i]+s[i]\le W\) y \(y[i]+s[i]\le H\). El modelo es \textbf{completo} porque cualquier configuración válida de los cuadrados dentro del rectángulo satisface las restricciones: si un conjunto de posiciones \((x[i],y[i])\) cumple las cotas y no hay solapamientos, entonces se cumple el CSP. La global \texttt{diffn} es \emph{representacional} (no añade ni elimina soluciones) y el mapeo inverso asegura salida legible. Cabe aclarar que el modelo aunque incluye restricciones de ruptura de simetría que excluyen resultados de permutaciones de cuadrados del mismo tamaño,no incluye restricciones que excluyan soluciones espejo, por lo que configuraciones equivalentes bajo transformaciones de espejo o rotación (en caso de que \(W = H\)) se consideran soluciones distintas. En conjunto, la combinación de dominios precisos, las cotas y \texttt{diffn} elimina asignaciones espurias y asegura que todas las configuraciones geométricamente válidas se representen, aun cuando existan soluciones espejo equivalentes.
 \end{description}
