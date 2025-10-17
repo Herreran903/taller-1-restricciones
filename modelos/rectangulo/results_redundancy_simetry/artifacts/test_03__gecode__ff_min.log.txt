@@ -1,0 +1,24 @@
+CMD: minizinc --all-solutions --solver gecode --statistics --time-limit 60000 modelos/rectangulo\results/flat\test_03__gecode__ff_min.fzn
+
+% Generated FlatZinc statistics:
+%%%mzn-stat: paths=0
+%%%mzn-stat: method="satisfy"
+%%%mzn-stat: flatTime=0.0464411
+%%%mzn-stat-end
+=====UNSATISFIABLE=====
+%%%mzn-stat: initTime=0.0001388
+%%%mzn-stat: solveTime=1.55e-05
+%%%mzn-stat: solutions=0
+%%%mzn-stat: variables=0
+%%%mzn-stat: propagators=0
+%%%mzn-stat: propagations=0
+%%%mzn-stat: nodes=0
+%%%mzn-stat: failures=1
+%%%mzn-stat: restarts=0
+%%%mzn-stat: peakDepth=0
+%%%mzn-stat-end
+%%%mzn-stat: nSolutions=0
+%%%mzn-stat-end
+
+
+--- STDERR ---

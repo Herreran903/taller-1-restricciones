@@ -1,0 +1,26 @@
+CMD: minizinc --all-solutions --solver gecode --statistics --time-limit 60000 modelos/rectangulo\results/flat\test_03__gecode__wdeg_split.fzn
+
+% Generated FlatZinc statistics:
+%%%mzn-stat: paths=0
+%%%mzn-stat: flatIntVars=12
+%%%mzn-stat: flatIntConstraints=3
+%%%mzn-stat: method="satisfy"
+%%%mzn-stat: flatTime=0.0454469
+%%%mzn-stat-end
+=====UNSATISFIABLE=====
+%%%mzn-stat: initTime=0.0002851
+%%%mzn-stat: solveTime=0.0001267
+%%%mzn-stat: solutions=0
+%%%mzn-stat: variables=12
+%%%mzn-stat: propagators=5
+%%%mzn-stat: propagations=332
+%%%mzn-stat: nodes=57
+%%%mzn-stat: failures=29
+%%%mzn-stat: restarts=0
+%%%mzn-stat: peakDepth=7
+%%%mzn-stat-end
+%%%mzn-stat: nSolutions=0
+%%%mzn-stat-end
+
+
+--- STDERR ---
