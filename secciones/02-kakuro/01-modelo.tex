@@ -18,16 +18,45 @@
 
 \subsubsection*{Restricciones principales}
 \begin{description}
-  \item[\textbf{R1 — Bloques horizontales válidos:}] \(\forall h\in H:\ \sum_{i\in C^H_h} X_i = s^H_h\) y \(\textit{all\_different}\big([X_i\mid i\in C^H_h]\big)\).
-  \item[\textbf{R2 — Bloques verticales válidos:}] \(\forall v\in V:\ \sum_{i\in C^V_v} X_i = s^V_v\) y \(\textit{all\_different}\big([X_i\mid i\in C^V_v]\big)\).
-  \item[\textbf{R3 — Intersección coherente:}] La variable de cada celda satisface simultáneamente la restricción de su bloque horizontal y la de su bloque vertical (consistencia en cruces).
+  \item[\textbf{R1 — Bloques horizontales válidos:}] En cada bloque horizontal, la suma de los valores debe coincidir con la pista y los dígitos no pueden repetirse.  
+  \[
+  \forall h \in H:\ \sum_{i \in C^H_h} X_i = s^H_h,
+  \qquad
+  \forall i_1,i_2 \in C^H_h,\ i_1 \neq i_2 \Rightarrow X_{i_1} \neq X_{i_2}.
+  \]
+
+  \item[\textbf{R2 — Bloques verticales válidos:}] En cada bloque vertical, la suma de los valores debe coincidir con la pista y los dígitos deben ser distintos entre sí.  
+  \[
+  \forall v \in V:\ \sum_{i \in C^V_v} X_i = s^V_v,
+  \qquad
+  \forall i_1,i_2 \in C^V_v,\ i_1 \neq i_2 \Rightarrow X_{i_1} \neq X_{i_2}.
+  \]
+
+  \item[\textbf{R3 — Intersección coherente:}] Cada celda participa en un bloque horizontal y en uno vertical, y su valor cumple ambas restricciones simultáneamente.  
+  \[
+  \forall i \in C:\ X_i \text{ satisface las condiciones de su bloque horizontal y vertical.}
+  \]
 \end{description}
 
 \subsubsection*{Restricciones redundantes}
 \begin{description}
-  \item[\textbf{R4 — Acotación por suma distinta:}] Si un bloque tiene \(k\) celdas y pista \(s\), entonces \(s_{\min}(k)\le \sum X \le s_{\max}(k)\) con dígitos todos distintos; esto induce cotas por celda que reducen el dominio.
-  \item[\textbf{R5 — Catálogo de combinaciones:}] Para cada par \((k,s)\) se restringe \([X_i]\) del bloque a pertenecer a un catálogo precomputado de \(k\)-tuplas distintas que suman \(s\); acelera la propagación.
-  \item[\textbf{R6 — Simetría interna en bloques:}] Cuando no hay otras restricciones que distingan posiciones dentro de un bloque, se puede imponer un orden \(\le\) sobre un vector auxiliar de los valores del bloque para reducir permutaciones equivalentes.
+  \item[\textbf{R4 — Acotación por suma distinta:}] Si un bloque tiene \(k\) celdas y pista \(s\), la suma de sus valores está acotada por las combinaciones posibles de \(k\) dígitos distintos.  
+  \[
+  s_{\min}(k) \le \sum_{i=1}^{k} X_i \le s_{\max}(k),
+  \qquad
+  s_{\min}(k) = 1 + 2 + \dots + k,\quad
+  s_{\max}(k) = 9 + 8 + \dots + (10 - k).
+  \]
+
+  \item[\textbf{R5 — Catálogo de combinaciones:}] Para cada par \((k,s)\), los valores del bloque deben pertenecer a un conjunto precomputado de \(k\)-tuplas de dígitos distintos cuya suma es \(s\).  
+  \[
+  \forall (k,s):\ [X_1,\dots,X_k] \in \mathcal{C}(k,s).
+  \]
+
+  \item[\textbf{R6 — Simetría interna en bloques:}] En bloques sin otras condiciones diferenciadoras, se puede imponer un orden no decreciente para eliminar permutaciones equivalentes.  
+  \[
+  \forall i \in \{1,\dots,k-1\}:\ X_i \le X_{i+1}.
+  \]
 \end{description}
 
 \subsubsection*{Justificación del modelo}

@@ -19,25 +19,19 @@
   \[
   \forall i \in \{0, \dots, n-1\}:\quad x[i] = \bigl|\{\, j \in \{0, \dots, n-1\} : x[j] = i \,\}\bigr|.
   \]
-  En MiniZinc, esto se implementa mediante la restricción global:
-  \begin{verbatim}
-  constraint forall(i in 0..n-1)( count(x, i) = x[i] );
-  \end{verbatim}
 \end{description}
 
 \subsubsection*{Restricciones redundantes}
 \begin{description}
-  \item[\textbf{R2 — Suma total:}]
+  \item[\textbf{R2 — Suma total:}]La suma de las frecuencias debe ser igual a la longitud total de la secuencia.
   \[
   \sum_{i=0}^{n-1} x[i] = n.
   \]
-  Justificación: la suma de las frecuencias debe ser igual a la longitud total de la secuencia.
 
-  \item[\textbf{R3 — Equilibrio de valores:}]
+  \item[\textbf{R3 — Equilibrio de valores:}]   Esta relación expresa el equilibrio entre los índices y las frecuencias, ayudando a reducir el espacio de búsqueda.
   \[
   \sum_{i=0}^{n-1} (i-1)\,x[i] = 0.
   \]
-  Esta relación expresa el equilibrio entre los índices y las frecuencias, ayudando a reducir el espacio de búsqueda.
 
 \subsubsection*{Justificación del modelo}
 En este modelo, la restricción \(\forall i \in \{0,\dots,n-1\}:~ x[i] = \bigl|\{\,j : x[j]=i\,\}\bigr|\) garantiza la \emph{corrección}, pues fuerza a que cada componente \(x[i]\) coincida exactamente con el número de apariciones del dígito \(i\) (punto fijo del operador ``histograma''), y asegura la \emph{completitud}, ya que cualquier secuencia mágica válida satisface por construcción esas igualdades. Los dominios \(x[i]\in\{0,\dots,n-1\}\) son mínimos y consistentes: un conteo no puede ser negativo, no puede superar \(n\), y el valor \(n\) es imposible, por lo que \(\{0,\dots,n-1\}\) elimina valores inviables sin perder soluciones.

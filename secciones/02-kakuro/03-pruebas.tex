@@ -4,30 +4,52 @@
 Se evaluó el modelo con dos instancias, \texttt{test\_01} y \texttt{test\_02}.
 
 \begin{compactfloats}
-    \begin{table}[H]
-      \centering
-      \small
-      \setlength{\tabcolsep}{3pt}
-      \caption{Resultados de pruebas (Kakuro).}
-      \label{tab:pruebas-kakuro}
-      \begin{tabular}{l l l l r r r r l}
-        \toprule
-        \textbf{Archivo} & \textbf{Solver} & \textbf{Var heur} & \textbf{Val heur} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} & \textbf{status} \\
-        \midrule
-        \texttt{test\_01} & chuffed & first\_fail & indomain\_min   &  &  &  &  &  \\
-        \texttt{test\_01} & chuffed & dom\_w\_deg  & indomain\_split &  &  &  &  &  \\
-        \texttt{test\_01} & chuffed & input\_order & indomain\_min   &  &  &  &  &  \\
-        \texttt{test\_02} & chuffed & first\_fail & indomain\_min   &  &  &  &  &  \\
-        \texttt{test\_02} & chuffed & dom\_w\_deg  & indomain\_split &  &  &  &  &  \\
-        \texttt{test\_02} & chuffed & input\_order & indomain\_min   &  &  &  &  &  \\
-        \midrule
-        \texttt{test\_01} & gecode  & first\_fail & indomain\_min   &  &  &  &  &  \\
-        \texttt{test\_01} & gecode  & dom\_w\_deg  & indomain\_split &  &  &  &  &  \\
-        \texttt{test\_01} & gecode  & input\_order & indomain\_min   &  &  &  &  &  \\
-        \texttt{test\_02} & gecode  & first\_fail & indomain\_min   &  &  &  &  &  \\
-        \texttt{test\_02} & gecode  & dom\_w\_deg  & indomain\_split &  &  &  &  &  \\
-        \texttt{test\_02} & gecode  & input\_order & indomain\_min   &  &  &  &  &  \\
-        \bottomrule
-      \end{tabular}
-    \end{table}
-  \end{compactfloats}
+\begin{table}[H]
+  \centering
+  \small
+  \setlength{\tabcolsep}{10.8pt}
+  \caption{Resultados de pruebas \textbf{con} restricciones redundantes.}
+  \label{tab:pruebas-kakuro-on}
+  \begin{tabular}{l l l l r r r r}
+    \toprule
+    \textbf{Archivo} & \textbf{Solver} & \textbf{Var heur} & \textbf{Val heur} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} \\
+    \midrule
+    test\_01 & Chuffed & first\_fail  & indomain\_min   & 6.000e$-$03 & 5 & 4 & 3 \\
+    test\_01 & Chuffed & dom\_w\_deg  & indomain\_split & 6.000e$-$03 & 6 & 3 & 3 \\
+    test\_01 & Gecode  & first\_fail  & indomain\_min   & 5.623e$-$04 & 9 & 4 & 3 \\
+    test\_01 & Gecode  & dom\_w\_deg  & indomain\_split & 5.250e$-$04 & 9 & 4 & 4 \\
+    \midrule
+    test\_02 & Chuffed & first\_fail  & indomain\_min   & 6.000e$-$03 & 5 & 5 & 1 \\
+    test\_02 & Chuffed & dom\_w\_deg  & indomain\_split & 6.000e$-$03 & 5 & 5 & 2 \\
+    test\_02 & Gecode  & first\_fail  & indomain\_min   & 1.276e$-$03 & 9 & 4 & 1 \\
+    test\_02 & Gecode  & dom\_w\_deg  & indomain\_split & 1.967e$-$03 & 9 & 4 & 1 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \small
+  \setlength{\tabcolsep}{10.8pt}
+  \caption{Resultados de pruebas \textbf{sin} restricciones redundantes.}
+  \label{tab:pruebas-kakuro-off}
+  \begin{tabular}{l l l l r r r r}
+    \toprule
+    \textbf{Archivo} & \textbf{Solver} & \textbf{Var heur} & \textbf{Val heur} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} \\
+    \midrule
+    test\_01 & Chuffed & first\_fail  & indomain\_min   & 5.000e$-$03 & 5 & 4 & 3 \\
+    test\_01 & Chuffed & dom\_w\_deg  & indomain\_split & 1.000e$-$03 & 6 & 3 & 3 \\
+    test\_01 & Gecode  & first\_fail  & indomain\_min   & 9.591e$-$04 & 9 & 4 & 3 \\
+    test\_01 & Gecode  & dom\_w\_deg  & indomain\_split & 8.089e$-$04 & 9 & 4 & 4 \\
+    \midrule
+    test\_02 & Chuffed & first\_fail  & indomain\_min   & 6.000e$-$03 & 5 & 5 & 1 \\
+    test\_02 & Chuffed & dom\_w\_deg  & indomain\_split & 6.000e$-$03 & 5 & 5 & 2 \\
+    test\_02 & Gecode  & first\_fail  & indomain\_min   & 5.317e$-$04 & 9 & 4 & 1 \\
+    test\_02 & Gecode  & dom\_w\_deg  & indomain\_split & 5.488e$-$04 & 9 & 4 & 1 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\end{compactfloats}
+
+\FloatBarrier
+
