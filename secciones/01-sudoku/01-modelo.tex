@@ -17,17 +17,47 @@
 
 \subsubsection*{Restricciones principales}
 \begin{description}
-  \item[\textbf{R1 — Pistas fijas:}] Si hay pista, se respeta: \((G_{r,c}>0)\Rightarrow X_{r,c}=G_{r,c}\) para todo \(r,c\in S\).
-  \item[\textbf{R2 — Filas sin repetición:}] \(\forall r\in S:\ \textit{all\_different}\big([X_{r,c}\mid c\in S]\big)\).
-  \item[\textbf{R3 — Columnas sin repetición:}] \(\forall c\in S:\ \textit{all\_different}\big([X_{r,c}\mid r\in S]\big)\).
-  \item[\textbf{R4 — Cajas \(3\times3\) sin repetición:}] \(\forall b_r,b_c\in\{0,1,2\}:\ \textit{all\_different}\big([X_{3b_r+i,\,3b_c+j}\mid i,j\in\{1,2,3\}]\big)\).
+  \item[\textbf{R1 — Pistas fijas:}] Toda celda con pista dada conserva su valor.  
+  \[
+  \forall (r,c)\in S:\ G_{r,c} > 0 \ \Rightarrow\  X_{r,c} = G_{r,c}.
+  \]
+
+  \item[\textbf{R2 — Filas sin repetición:}] En cada fila, todos los valores son distintos.  
+  \[
+  \forall r \in S:\ \forall c_1, c_2 \in S,\ c_1 \neq c_2 \ \Rightarrow\  X_{r,c_1} \neq X_{r,c_2}.
+  \]
+
+  \item[\textbf{R3 — Columnas sin repetición:}] En cada columna, todos los valores son distintos.  
+  \[
+  \forall c \in S:\ \forall r_1, r_2 \in S,\ r_1 \neq r_2 \ \Rightarrow\  X_{r_1,c} \neq X_{r_2,c}.
+  \]
+
+  \item[\textbf{R4 — Cajas \(3\times3\) sin repetición:}] En cada subcuadro \(3\times3\), los valores son distintos entre sí.  
+  \[
+  \forall b_r,b_c \in \{0,1,2\}:\ 
+  \forall (i_1,j_1),(i_2,j_2) \in \{1,2,3\}^2,\ (i_1,j_1) \neq (i_2,j_2) \ \Rightarrow\ 
+  X_{3b_r+i_1,\,3b_c+j_1} \neq X_{3b_r+i_2,\,3b_c+j_2}.
+  \]
 \end{description}
+
 
 \subsubsection*{Restricciones redundantes}
 \begin{description}
-  \item[\textbf{R5 — Suma por fila \(=45\):}] \(\forall r\in S:\ \sum_{c\in S}X_{r,c}=45\). Aporta poda lineal cuando faltan pocas celdas en la fila.
-  \item[\textbf{R6 — Suma por columna \(=45\):}] \(\forall c\in S:\ \sum_{r\in S}X_{r,c}=45\). Refuerza la propagación vertical.
-  \item[\textbf{R7 — Suma por caja \(=45\):}] \(\forall b_r,b_c\in\{0,1,2\}:\ \sum_{i=1}^{3}\sum_{j=1}^{3}X_{3b_r+i,\,3b_c+j}=45\). Útil para cerrar subcuadrículas casi completas.
+  \item[\textbf{R5 — Suma por fila \(=45\):}] En cada fila, la suma de los valores debe ser igual a 45.  
+  \[
+  \forall r \in S:\ \sum_{c \in S} X_{r,c} = 45.
+  \]
+
+  \item[\textbf{R6 — Suma por columna \(=45\):}] En cada columna, la suma de los valores debe ser igual a 45.  
+  \[
+  \forall c \in S:\ \sum_{r \in S} X_{r,c} = 45.
+  \]
+
+  \item[\textbf{R7 — Suma por caja \(=45\):}] En cada subcuadro \(3\times3\), la suma de los valores también debe ser igual a 45.  
+  \[
+  \forall b_r, b_c \in \{0,1,2\}:\ 
+  \sum_{i=1}^{3} \sum_{j=1}^{3} X_{3b_r+i,\,3b_c+j} = 45.
+  \]
 \end{description}
 
 \subsubsection*{Justificación del modelo}

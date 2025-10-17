@@ -48,9 +48,6 @@
 \subsubsection*{Justificación del modelo}
 El modelo es \textbf{correcto y completo} respecto al acertijo. Es correcto porque: (i) los dominios codifican exactamente los valores admitidos (apellidos, música y edades), (ii) \texttt{alldifferent} garantiza la \emph{biyectividad} persona–valor en cada atributo, como exige el enunciado, y (iii) cada pista se traduce mediante implicaciones índice–valor semánticamente equivalentes (p.\,ej., \(\texttt{GONZALEZ}\Rightarrow\texttt{CLASICA}\), \(\texttt{POP}\Rightarrow\texttt{apellido}\neq\texttt{GARCIA}\), \(\texttt{edad}[\texttt{Oscar}]=25\)), de modo que toda solución del CSP satisface el acertijo. Es completo (\emph{complete}) porque cualquier solución válida del acertijo puede representarse en el modelo: basta mapear las etiquetas a sus códigos enteros y se satisfacen dominios, \texttt{alldifferent} y las implicaciones; por lo tanto, ninguna solución real queda fuera. La codificación entera es puramente \emph{representacional} (no añade ni elimina soluciones) y el mapeo inverso asegura salida legible. En conjunto, la combinación de dominios precisos, \texttt{alldifferent} y las pistas formalizadas elimina asignaciones espurias y, cuando el enunciado determina una única solución, el modelo también la vuelve única.
 
-\subsubsection*{Restricciones redundantes}
-No se añadieron restricciones redundantes en la versión final, ya que la combinación de \texttt{alldifferent} y las pistas es suficiente para fijar la solución en este tamaño de instancia. En pruebas internas, \(\texttt{count}\) sobre valores específicos y la suma fija de edades no aportaron mejoras apreciables de tiempo ni de nodos/fallos, por lo que se priorizó la \emph{simplicidad del modelo}.
-
 \subsubsection*{Estrategia de búsqueda}
 Se concatena el vector de decisión \(\texttt{vars}\) y se usa una heurística reproducible y fuertemente propagante:
 \[

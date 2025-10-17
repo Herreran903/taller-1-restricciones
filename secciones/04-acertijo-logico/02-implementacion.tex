@@ -2,16 +2,16 @@
 
 \subsection{Detalles de implementación}\label{sec:04-acertijo-logico-impl}
 \subsubsection*{Restricciones redundantes}
-Aunque $\texttt{alldifferent}$ ya garantiza unicidad, se incluyen redundantes que se pensó podria mejorar la propagación:
+Aunque \(\texttt{alldifferent}\) ya garantiza la unicidad de los valores, se consideraron algunas restricciones redundantes que podrían, en principio, mejorar la propagación.  
 \[
-\texttt{count}(\{\texttt{apellido}[\texttt{n}]\},\texttt{GONZALEZ})=1,\quad
-\texttt{count}(\{\texttt{musica}[\texttt{n}]\},\texttt{POP})=1,
+\texttt{count}(\{\texttt{apellido}[n]\},\texttt{GONZALEZ}) = 1, \qquad
+\texttt{count}(\{\texttt{musica}[n]\},\texttt{POP}) = 1,
 \]
-y la suma fija de edades $24+25+26=75$:
+y una suma fija de edades:
 \[
-\sum_{\texttt{n}} \texttt{edad}[\texttt{n}] = 75.
+\sum_{n} \texttt{edad}[n] = 75 \quad (24 + 25 + 26 = 75).
 \]
-Al momento de implemenrtar el modelo no se evidenció mejora alguna en el rendimiento al usar estas redundantes, por lo que no se incluyeron en la versión final del código.
+Sin embargo, en las pruebas internas no se observaron mejoras apreciables en tiempo de resolución ni en la cantidad de nodos o fallos. Por ello, en la versión final no se añadieron restricciones redundantes, priorizando la simplicidad y claridad del modelo.
 
-\subsubsection*{Simetrías}
+\subsubsection*{Ruptura de simetría}
 No hay simetrías relevantes: los valores están etiquetados (GONZALEZ/POP/JAZZ, edades específicas) y las personas (Juan/Oscar/Dario) aparecen en pistas distintas. No necesitas romper simetrías adicionales.
