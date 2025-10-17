@@ -1,0 +1,44 @@
+% Generated FlatZinc statistics:
+%%%mzn-stat: paths=0
+%%%mzn-stat: flatBoolVars=65
+%%%mzn-stat: flatIntVars=12
+%%%mzn-stat: flatBoolConstraints=19
+%%%mzn-stat: flatIntConstraints=69
+%%%mzn-stat: evaluatedReifiedConstraints=65
+%%%mzn-stat: method="satisfy"
+%%%mzn-stat: flatTime=0.0504144
+%%%mzn-stat-end
+x = array1d(1..6,[0, 3, 3, 0, 1, 2]);
+y = array1d(1..6,[0, 0, 2, 3, 3, 3]);
+----------
+x = array1d(1..6,[0, 3, 3, 0, 1, 2]);
+y = array1d(1..6,[1, 0, 2, 0, 0, 0]);
+----------
+x = array1d(1..6,[2, 0, 0, 2, 3, 4]);
+y = array1d(1..6,[0, 0, 2, 3, 3, 3]);
+----------
+x = array1d(1..6,[2, 0, 0, 2, 3, 4]);
+y = array1d(1..6,[1, 0, 2, 0, 0, 0]);
+----------
+==========
+%%%mzn-stat: nodes=27
+%%%mzn-stat: failures=19
+%%%mzn-stat: restarts=0
+%%%mzn-stat: variables=183
+%%%mzn-stat: intVars=12
+%%%mzn-stat: boolVariables=169
+%%%mzn-stat: propagators=135
+%%%mzn-stat: propagations=992
+%%%mzn-stat: peakDepth=8
+%%%mzn-stat: nogoods=19
+%%%mzn-stat: backjumps=8
+%%%mzn-stat: peakMem=0.00
+%%%mzn-stat: time=0.008
+%%%mzn-stat: initTime=0.008
+%%%mzn-stat: solveTime=0.000
+%%%mzn-stat: baseMem=0.00
+%%%mzn-stat: trailMem=0.00
+%%%mzn-stat: randomSeed=1385048181
+%%%mzn-stat-end
+%%%mzn-stat: nSolutions=4
+%%%mzn-stat-end

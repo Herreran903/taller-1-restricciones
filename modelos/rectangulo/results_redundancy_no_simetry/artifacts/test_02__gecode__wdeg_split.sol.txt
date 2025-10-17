@@ -1,0 +1,69 @@
+% Generated FlatZinc statistics:
+%%%mzn-stat: paths=0
+%%%mzn-stat: flatIntVars=10
+%%%mzn-stat: flatIntConstraints=1
+%%%mzn-stat: method="satisfy"
+%%%mzn-stat: flatTime=0.04656
+%%%mzn-stat-end
+x = array1d(1..5,[0, 0, 3, 4, 4]);
+y = array1d(1..5,[3, 0, 0, 3, 5]);
+----------
+x = array1d(1..5,[0, 0, 3, 4, 4]);
+y = array1d(1..5,[3, 0, 0, 5, 3]);
+----------
+x = array1d(1..5,[0, 3, 0, 4, 4]);
+y = array1d(1..5,[3, 0, 0, 3, 5]);
+----------
+x = array1d(1..5,[0, 3, 0, 4, 4]);
+y = array1d(1..5,[3, 0, 0, 5, 3]);
+----------
+x = array1d(1..5,[2, 0, 3, 0, 0]);
+y = array1d(1..5,[3, 0, 0, 3, 5]);
+----------
+x = array1d(1..5,[2, 0, 3, 0, 0]);
+y = array1d(1..5,[3, 0, 0, 5, 3]);
+----------
+x = array1d(1..5,[2, 3, 0, 0, 0]);
+y = array1d(1..5,[3, 0, 0, 3, 5]);
+----------
+x = array1d(1..5,[2, 3, 0, 0, 0]);
+y = array1d(1..5,[3, 0, 0, 5, 3]);
+----------
+x = array1d(1..5,[0, 0, 3, 4, 4]);
+y = array1d(1..5,[0, 4, 4, 0, 2]);
+----------
+x = array1d(1..5,[0, 0, 3, 4, 4]);
+y = array1d(1..5,[0, 4, 4, 2, 0]);
+----------
+x = array1d(1..5,[0, 3, 0, 4, 4]);
+y = array1d(1..5,[0, 4, 4, 0, 2]);
+----------
+x = array1d(1..5,[0, 3, 0, 4, 4]);
+y = array1d(1..5,[0, 4, 4, 2, 0]);
+----------
+x = array1d(1..5,[2, 0, 3, 0, 0]);
+y = array1d(1..5,[0, 4, 4, 0, 2]);
+----------
+x = array1d(1..5,[2, 0, 3, 0, 0]);
+y = array1d(1..5,[0, 4, 4, 2, 0]);
+----------
+x = array1d(1..5,[2, 3, 0, 0, 0]);
+y = array1d(1..5,[0, 4, 4, 0, 2]);
+----------
+x = array1d(1..5,[2, 3, 0, 0, 0]);
+y = array1d(1..5,[0, 4, 4, 2, 0]);
+----------
+==========
+%%%mzn-stat: initTime=0.0002477
+%%%mzn-stat: solveTime=0.0002705
+%%%mzn-stat: solutions=16
+%%%mzn-stat: variables=10
+%%%mzn-stat: propagators=3
+%%%mzn-stat: propagations=474
+%%%mzn-stat: nodes=115
+%%%mzn-stat: failures=42
+%%%mzn-stat: restarts=0
+%%%mzn-stat: peakDepth=8
+%%%mzn-stat-end
+%%%mzn-stat: nSolutions=16
+%%%mzn-stat-end
