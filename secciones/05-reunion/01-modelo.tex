@@ -17,7 +17,7 @@
 \end{description}
 \subsubsection*{Restricciones principales}
 \begin{description}
-  \item[\textbf{R1 — Biección (canalización):}] La asignación es una permutación válida: cada persona ocupa exactamente una posición y cada posición contiene exactamente una persona. \(\textit{inverse}(POS\_OF,\,PER\_AT).\)
+  \item[\textbf{R1 — Biección:}] La asignación es una permutación válida: cada persona ocupa exactamente una posición y cada posición contiene exactamente una persona. \(\textit{inverse}(POS\_OF,\,PER\_AT).\)
   \item[\textbf{R2 — Preferencias \(\textsf{next}(A,B)\):}] \(A\) y \(B\) deben quedar adyacentes. \(\forall (A,B)\in \texttt{NEXT}:\ \big|\,POS\_OF_A - POS\_OF_B\,\big| = 1.\)
   \item[\textbf{R3 — Preferencias \(\textsf{separate}(A,B)\):}] \(A\) y \(B\) no pueden quedar adyacentes. \(\forall (A,B)\in \texttt{SEP}:\ \big|\,POS\_OF_A - POS\_OF_B\,\big| \ge 2.\)
   \item[\textbf{R4 — Preferencias \(\textsf{distance}(A,B,M)\):}] A lo sumo \(M\) personas entre \(A\) y \(B\), equivalente a cota sobre distancia de posiciones. \(\forall (A,B,M)\in \texttt{DIST}:\ \big|\,POS\_OF_A - POS\_OF_B\,\big|\ \le\ M+1.\)
@@ -31,3 +31,6 @@
 \begin{description}
   \item[\textbf{R7 — Rompimiento de simetría izquierda–derecha:}] Las soluciones reflejadas son equivalentes; para evitar duplicados, se fija \(PER\_AT_1<PER\_AT_N.\)
 \end{description}
+
+\subsubsection*{Justificación del modelo}
+La formulación captura  el problema de ubicar \(N\) personas en una fila. La biección de R1 garantiza que la asignación sea una permutación válida y mantiene coherencia entre las dos vistas del mismo estado (\(POS\_OF\) y \(PER\_AT\)). Las preferencias se modelan de forma directa: R2 impone adyacencia, R3 excluye adyacencia y R4 limita la distancia permitiendo a lo sumo \(M\) personas entre \(A\) y \(B\). Las redundancias R5–R6 buscan fortalecer la propagación sin alterar soluciones: R5 se basa en el hecho estructural de que cada persona solo puede tener dos vecinos, y R6 elimina inconsistencias lógicas entre \(\textsf{next}\) y \(\textsf{separate}\). Finalmente, R7 elimina duplicados por simetría espejo izquierda–derecha, preservando una solución representativa por clase de equivalencia.

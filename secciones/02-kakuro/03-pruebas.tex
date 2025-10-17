@@ -1,4 +1,33 @@
 % !TEX root = ../../main.tex
 
 \subsection{Pruebas}\label{sec:02-kakuro-pruebas}
-Casos de prueba, entradas, métricas y tablas o figuras de apoyo.
+Se evaluó el modelo con dos instancias, \texttt{test\_01} y \texttt{test\_02}.
+
+\begin{compactfloats}
+    \begin{table}[H]
+      \centering
+      \small
+      \setlength{\tabcolsep}{3pt}
+      \caption{Resultados de pruebas (Kakuro).}
+      \label{tab:pruebas-kakuro}
+      \begin{tabular}{l l l l r r r r l}
+        \toprule
+        \textbf{Archivo} & \textbf{Solver} & \textbf{Var heur} & \textbf{Val heur} & \textbf{time} & \textbf{nodes} & \textbf{fail} & \textbf{depth} & \textbf{status} \\
+        \midrule
+        \texttt{test\_01} & chuffed & first\_fail & indomain\_min   &  &  &  &  &  \\
+        \texttt{test\_01} & chuffed & dom\_w\_deg  & indomain\_split &  &  &  &  &  \\
+        \texttt{test\_01} & chuffed & input\_order & indomain\_min   &  &  &  &  &  \\
+        \texttt{test\_02} & chuffed & first\_fail & indomain\_min   &  &  &  &  &  \\
+        \texttt{test\_02} & chuffed & dom\_w\_deg  & indomain\_split &  &  &  &  &  \\
+        \texttt{test\_02} & chuffed & input\_order & indomain\_min   &  &  &  &  &  \\
+        \midrule
+        \texttt{test\_01} & gecode  & first\_fail & indomain\_min   &  &  &  &  &  \\
+        \texttt{test\_01} & gecode  & dom\_w\_deg  & indomain\_split &  &  &  &  &  \\
+        \texttt{test\_01} & gecode  & input\_order & indomain\_min   &  &  &  &  &  \\
+        \texttt{test\_02} & gecode  & first\_fail & indomain\_min   &  &  &  &  &  \\
+        \texttt{test\_02} & gecode  & dom\_w\_deg  & indomain\_split &  &  &  &  &  \\
+        \texttt{test\_02} & gecode  & input\_order & indomain\_min   &  &  &  &  &  \\
+        \bottomrule
+      \end{tabular}
+    \end{table}
+  \end{compactfloats}

@@ -1,4 +1,12 @@
 % !TEX root = ../../main.tex
 
-\subsection{Detalles de implementación}\label{sec:02-kakuro-impl}
-Restricciones redundantes, rompimiento de simetrías y decisiones técnicas.
+\subsection{Implementación}\label{sec:02-kakuro-implementacion}
+
+\subsubsection*{Modelo}
+El modelo usa una máscara binaria \(B\) para distinguir muros y celdas blancas. Las celdas negras se fijan en cero y las blancas toman dígitos \(1\!-\!9\). A partir de \(B\) y de las pistas se extraen los bloques horizontales y verticales como secuencias contiguas. Cada bloque exige suma objetivo y no repetición. La búsqueda solo ramifica sobre celdas blancas, lo que evita posiciones muertas y concentra el esfuerzo donde hay decisión.
+
+\subsubsection*{Restricciones redundantes}
+Se añade poda ligera específica por bloque. Para un bloque de tamaño \(k\) y pista \(s\) se acotan dominios con sumas mínima y máxima posibles sin repetición \(\big(s_{\min}(k)\le \sum X \le s_{\max}(k)\big)\) y se descartan dígitos incompatibles con dichas cotas. Cuando resulta conveniente, el vector de cada bloque se restringe a un catálogo precomputado de \(k\)-tuplas distintas que suman \(s\), lo que refuerza la propagación sin alterar la corrección.
+
+\subsubsection*{Ruptura de simetría}
+La disposición de muros y las pistas de suma fijan la instancia de manera efectiva. Un renombrado de dígitos modificaría las ecuaciones de suma y un reflejo o rotación cambiaría la estructura de bloques y sus pistas. En consecuencia, no se introducen rompedores de simetría adicionales, pues el propio diseño de Kakuro elimina las simetrías relevantes y cualquier transformación no preservaría la instancia dada.

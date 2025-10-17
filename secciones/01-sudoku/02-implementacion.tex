@@ -3,10 +3,10 @@
 \subsection{Implementación}\label{sec:01-sudoku-implementacion}
 
 \subsubsection*{Modelo}
-Definimos el conjunto de ramificación \(\mathcal{B}=\{X_{r,c}\mid G_{r,c}=0\}\) y sólo exploramos celdas sin pista. Así evitamos ramificar en valores ya fijados por \(G\) y concentramos la búsqueda donde hay incertidumbre, reduciendo el árbol sin afectar la corrección.
+Definimos el conjunto de ramificación \(\mathcal{B}=\{X_{r,c}\mid G_{r,c}=0\}\) y sólo exploramos celdas sin pista. Así evitamos ramificar en valores ya fijados por \(G\) y concentramos la búsqueda donde hay incertidumbre.
 
 \subsubsection*{Restricciones redundantes}
-Añadimos las sumas a \(45\) como poda ligera: no cambian el conjunto de soluciones y, en teoría, deberían ayudar a detectar inconsistencias temprano, reduciendo \emph{nodos} y \emph{fallos}.
+Añadimos las sumas a \(45\) como poda ligera, no cambian el conjunto de soluciones y, en teoría, deberían ayudar a detectar inconsistencias temprano, reduciendo \emph{nodos} y \emph{fallos}.
 
 \subsubsection*{Ruptura de simetría}
 Las pistas \(G\) fijan la instancia y aplicar simetrías del Sudoku (permutar filas, columnas o bandas, renombrar dígitos, transponer) movería o alteraría \(G\). Para no arriesgar la solución válida, no añadimos rompedores de simetría.

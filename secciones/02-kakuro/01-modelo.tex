@@ -1,5 +1,34 @@
 % !TEX root = ../../main.tex
 
 \subsection{Modelo}\label{sec:02-kakuro-modelo}
-Definición de variables, dominios y restricciones principales.
-Justificación del modelo.
+
+\subsubsection*{Parámetros}
+\begin{description}
+  \item[\textbf{P1 — \(DIG\):}] Dígitos permitidos: \(DIG=\{1,\dots,9\}\).
+  \item[\textbf{P2 — \(S\):}] Índices de celdas blancas: \(S=\{1,\dots,W\}\) con \(W\) conocido.
+  \item[\textbf{P3 — \(H\):}] Bloques horizontales. Para cada \(h\in H\), conjunto de celdas \(C^H_h\subseteq S\) y pista \(s^H_h\in\mathbb{N}\).
+  \item[\textbf{P4 — \(V\):}] Bloques verticales. Para cada \(v\in V\), conjunto de celdas \(C^V_v\subseteq S\) y pista \(s^V_v\in\mathbb{N}\).
+  \item[\textbf{P5 — Estructura:}] Cada celda blanca \(i\in S\) pertenece exactamente a un bloque horizontal y a uno vertical, y las celdas negras no están en \(S\).
+\end{description}
+
+\subsubsection*{Variables}
+\begin{description}
+  \item[\textbf{V1 — \(X_i\):}] Valor de la celda blanca \(i\): \(X_i\in DIG\) para todo \(i\in S\).
+\end{description}
+
+\subsubsection*{Restricciones principales}
+\begin{description}
+  \item[\textbf{R1 — Bloques horizontales válidos:}] \(\forall h\in H:\ \sum_{i\in C^H_h} X_i = s^H_h\) y \(\textit{all\_different}\big([X_i\mid i\in C^H_h]\big)\).
+  \item[\textbf{R2 — Bloques verticales válidos:}] \(\forall v\in V:\ \sum_{i\in C^V_v} X_i = s^V_v\) y \(\textit{all\_different}\big([X_i\mid i\in C^V_v]\big)\).
+  \item[\textbf{R3 — Intersección coherente:}] La variable de cada celda satisface simultáneamente la restricción de su bloque horizontal y la de su bloque vertical (consistencia en cruces).
+\end{description}
+
+\subsubsection*{Restricciones redundantes}
+\begin{description}
+  \item[\textbf{R4 — Acotación por suma distinta:}] Si un bloque tiene \(k\) celdas y pista \(s\), entonces \(s_{\min}(k)\le \sum X \le s_{\max}(k)\) con dígitos todos distintos; esto induce cotas por celda que reducen el dominio.
+  \item[\textbf{R5 — Catálogo de combinaciones:}] Para cada par \((k,s)\) se restringe \([X_i]\) del bloque a pertenecer a un catálogo precomputado de \(k\)-tuplas distintas que suman \(s\); acelera la propagación.
+  \item[\textbf{R6 — Simetría interna en bloques:}] Cuando no hay otras restricciones que distingan posiciones dentro de un bloque, se puede imponer un orden \(\le\) sobre un vector auxiliar de los valores del bloque para reducir permutaciones equivalentes.
+\end{description}
+
+\subsubsection*{Justificación del modelo}
+La formulación refleja las reglas y mantiene corrección y completitud. R1 y R2 aplican, en el lugar exacto, la suma objetivo y la no repetición para cada bloque horizontal y vertical; R3 asegura coherencia en los cruces al mantener una única variable por celda que satisface ambas vistas del tablero. La máscara de muros separa posiciones sin decisión de celdas válidas, evita asignaciones fuera del dominio \(1\!-\!9\) y. Las redundancias R4–R6 buscan fortalecer la poda: las cotas de suma descartan dígitos inviables de manera temprana, el catálogo \((k,s)\) concentra la búsqueda en combinaciones factibles con dígitos distintos y el orden interno opcional reduce permutaciones equivalentes dentro de un mismo bloque.
